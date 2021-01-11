@@ -106,9 +106,9 @@ export class Game {
     // Update event mitigation timeouts
     this.eventMitigations = this.eventMitigations.map(em => {
       const emc = cloneDeep(em);
-      emc.timeout--;
+      emc.duration--;
       return emc;
-    }).filter(em => em.timeout > 0);
+    }).filter(em => em.duration > 0);
 
     // apply new mitigations
     this.newEventMitigations.forEach(eventMitigation => {
@@ -120,7 +120,7 @@ export class Game {
         }
       }
 
-      if (eventMitigation.timeout > 0) {
+      if (eventMitigation.duration > 0) {
         this.eventMitigations.push(eventMitigation);
       }
     });
