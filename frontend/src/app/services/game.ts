@@ -30,6 +30,7 @@ export class Game {
   readonly vaccinationPerDay = 0.01; // TODO move to vaccination event
   readonly infectionsWhenBordersOpen = 30;
   readonly infectionsWhenBordersClosed = 10;
+  readonly minimalStability = -50;
 
   static readonly defaultMitigations: Mitigations = {
     bordersClosed: false,
@@ -42,9 +43,21 @@ export class Game {
     schoolsCompensation: false,
     stayHome: false,
   };
+
+  static readonly zeroMitigationEffect: MitigationEffect = {
+    rMult: 1.0,
+    exposedDrift: 0,
+    economicCost: 0,
+    compensationCost: 0,
+    stabilityCost: 0,
+    schoolDaysLost: 0,
+    vaccinationPerDay: 0,
+  };
+
   mitigations = cloneDeep(Game.defaultMitigations);
   eventMitigations: EventMitigation[] = [];
   newEventMitigations: EventMitigation[] = [];
+  removeMitigationIds: string[] = [];
 
   simulation = new Simulation(this.scenario.dates.rampUpStartDate);
   eventHandler = new EventHandler();
@@ -97,6 +110,9 @@ export class Game {
       if (this.newEventMitigations.length > 0) {
         this.mitigationHistory[nextDate].eventMitigations = this.newEventMitigations;
       }
+      if (this.removeMitigationIds.length > 0) {
+        this.mitigationHistory[nextDate].removeMitigationIds = this.removeMitigationIds;
+      }
     } else if (this.mitigationHistory[nextDate]) {
       // this can happen only after rewind
       delete this.mitigationHistory[nextDate];
@@ -105,9 +121,13 @@ export class Game {
     // Update event mitigation timeouts
     this.eventMitigations = this.eventMitigations.map(em => {
       const emc = cloneDeep(em);
-      emc.timeout--;
+      emc.duration--;
       return emc;
-    }).filter(em => em.timeout > 0);
+    }).filter(em => em.duration > 0);
+
+    // Remove mitigations by ID
+    this.eventMitigations = this.eventMitigations
+      .filter(em => em.id === undefined || !this.removeMitigationIds.includes(em.id));
 
     // apply new mitigations
     this.newEventMitigations.forEach(eventMitigation => {
@@ -119,7 +139,7 @@ export class Game {
         }
       }
 
-      if (eventMitigation.timeout > 0) {
+      if (eventMitigation.duration > 0) {
         this.eventMitigations.push(eventMitigation);
       }
     });
@@ -129,6 +149,7 @@ export class Game {
       eventMitigations: this.eventMitigations,
     };
     this.newEventMitigations = [];
+    this.removeMitigationIds = [];
   }
 
   moveBackward() {
@@ -147,7 +168,12 @@ export class Game {
   }
 
   isFinished() {
-    return this.simulation.lastDate >= this.scenario.dates.endDate;
+    return this.simulation.lastDate >= this.scenario.dates.endDate || this.isGameLost();
+  }
+
+  isGameLost() {
+    const lastStats = this.simulation.getLastStats();
+    return lastStats !== undefined && lastStats.stability <= this.minimalStability;
   }
 
   updateMitigationsForScenario() {
@@ -166,16 +192,15 @@ export class Game {
     if (mitigationActions.eventMitigations) {
       mitigationActions.eventMitigations.forEach(em => this.newEventMitigations.push(cloneDeep(em)));
     }
+
+    if (mitigationActions.removeMitigationIds) {
+      mitigationActions.removeMitigationIds.forEach(id => this.removeMitigationIds.push(id));
+    }
   }
 
   private calcMitigationEffect(date: string): MitigationEffect {
     const ret: MitigationEffect = {
-      rMult: 1.0,
-      exposedDrift: 0,
-      economicCost: 0,
-      compensationCost: 0,
-      stabilityCost: 0,
-      schoolDaysLost: 0,
+      ...Game.zeroMitigationEffect,
       vaccinationPerDay: this.vaccinationStartDate <= date ? this.vaccinationPerDay : 0,
     };
     let bordersClosed = false;
@@ -202,13 +227,7 @@ export class Game {
 
     this.eventMitigations.forEach(em => Game.applyMitigationEffect(ret, em));
 
-    // All new mitigations applied this day are stored in mitigation history
-    const newEventMitigations = this.mitigationHistory[date]?.eventMitigations;
-    if (newEventMitigations) {
-      newEventMitigations
-        .filter(e => e.oneTimeEffect !== undefined)
-        .forEach(e => Game.applyMitigationEffect(ret, e));
-    }
+    ret.vaccinationPerDay = Math.max(0, ret.vaccinationPerDay);
 
     return ret;
   }

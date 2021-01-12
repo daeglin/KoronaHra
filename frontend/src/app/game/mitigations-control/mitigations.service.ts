@@ -72,7 +72,7 @@ export class MitigationsService {
       false: '3R - zrušeno',
     },
     schools: {
-      universities: 'Školy - zavřené univerzity',
+      universities: 'Školy - zavřené vysoké',
       all: 'Školy - zavřené všechny',
       false: 'Školy - neomezeno',
     },
@@ -160,9 +160,10 @@ export class MitigationsService {
       },
     );
 
+    // We need to reread the value from the form because it could have been changed by FormGroup.patchValue
     this.value$
       .pipe(untilDestroyed(this))
-      .subscribe(mitigations => gameService.game.applyMitigationActions({mitigations}));
+      .subscribe(() => gameService.game.applyMitigationActions({mitigations: this.formGroup.value}));
 
     gameService.reset$
       .pipe(untilDestroyed(this))
@@ -230,7 +231,7 @@ export class MitigationsService {
       case 'schools':
         return [
           [false, 'Neomezeno'],
-          ['universities', 'Zavřít univerzity'],
+          ['universities', 'Zavřít vysoké'],
           ['all', 'Zavřít všechny'],
         ];
 
