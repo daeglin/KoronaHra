@@ -46,6 +46,7 @@ export class Game {
   mitigations = cloneDeep(Game.defaultMitigations);
   eventMitigations: EventMitigation[] = [];
   newEventMitigations: EventMitigation[] = [];
+  removeMitigationIds: string[] = [];
 
   simulation = new Simulation(this.scenario.dates.rampUpStartDate);
   eventHandler = new EventHandler();
@@ -98,6 +99,9 @@ export class Game {
       if (this.newEventMitigations.length > 0) {
         this.mitigationHistory[nextDate].eventMitigations = this.newEventMitigations;
       }
+      if (this.removeMitigationIds.length > 0) {
+        this.mitigationHistory[nextDate].removeMitigationIds = this.removeMitigationIds;
+      }
     } else if (this.mitigationHistory[nextDate]) {
       // this can happen only after rewind
       delete this.mitigationHistory[nextDate];
@@ -109,6 +113,10 @@ export class Game {
       emc.duration--;
       return emc;
     }).filter(em => em.duration > 0);
+
+    // Remove mitigations by ID
+    this.eventMitigations = this.eventMitigations
+      .filter(em => em.id !== undefined && !(em.id in this.removeMitigationIds));
 
     // apply new mitigations
     this.newEventMitigations.forEach(eventMitigation => {
@@ -130,6 +138,7 @@ export class Game {
       eventMitigations: this.eventMitigations,
     };
     this.newEventMitigations = [];
+    this.removeMitigationIds = [];
   }
 
   moveBackward() {
@@ -172,6 +181,10 @@ export class Game {
     if (mitigationActions.eventMitigations) {
       mitigationActions.eventMitigations.forEach(em => this.newEventMitigations.push(cloneDeep(em)));
     }
+
+    if (mitigationActions.removeMitigationIds) {
+      mitigationActions.removeMitigationIds.forEach(id => this.removeMitigationIds.push(id));
+    }
   }
 
   private calcMitigationEffect(date: string): MitigationEffect {
@@ -208,13 +221,7 @@ export class Game {
 
     this.eventMitigations.forEach(em => Game.applyMitigationEffect(ret, em));
 
-    // All new mitigations applied this day are stored in mitigation history
-    const newEventMitigations = this.mitigationHistory[date]?.eventMitigations;
-    if (newEventMitigations) {
-      newEventMitigations
-        .filter(e => e.oneTimeEffect !== undefined)
-        .forEach(e => Game.applyMitigationEffect(ret, e));
-    }
+    ret.vaccinationPerDay = Math.max(0, ret.vaccinationPerDay);
 
     return ret;
   }
