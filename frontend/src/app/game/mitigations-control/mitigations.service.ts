@@ -160,9 +160,10 @@ export class MitigationsService {
       },
     );
 
+    // We need to reread the value from the form because it could have been changed by FormGroup.patchValue
     this.value$
       .pipe(untilDestroyed(this))
-      .subscribe(mitigations => gameService.game.applyMitigationActions({mitigations}));
+      .subscribe(() => gameService.game.applyMitigationActions({mitigations: this.formGroup.value}));
 
     gameService.reset$
       .pipe(untilDestroyed(this))
