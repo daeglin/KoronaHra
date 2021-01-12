@@ -1,0 +1,26 @@
+@mixin icon-size($size) {
+  height: $size;
+  width: $size;
+  font-size: $size;
+}
+
+:host {
+  display: flex;
+
+  &.small {
+    .mat-icon {
+      @include icon-size(0.75rem)
+    }
+  }
+
+  &.large {
+    .mat-icon {
+      @include icon-size(3rem)
+    }
+  }
+}
+
+.mat-icon {
+  margin: auto;
+  @include icon-size(1.5rem)
+}

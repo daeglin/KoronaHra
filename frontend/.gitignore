@@ -1,0 +1,8 @@
+/node_modules
+
+# generated files
+/dist
+/tmp
+/*.log
+/src/assets/version.json
+/src/environments/version.ts

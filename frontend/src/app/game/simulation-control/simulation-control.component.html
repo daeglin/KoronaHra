@@ -1,0 +1,28 @@
+<cvd-col>
+
+  <cvd-row wrap>
+    <cvd-row wrap>
+      <cvd-button (click)="gameService.restartSimulation()">Restart Game</cvd-button>
+      <cvd-button (click)="gameService.restartSimulation('play', 'czechiaReal')">Restart CZ</cvd-button>
+    </cvd-row>
+
+    <cvd-row wrap>
+      <cvd-button (click)="gameService.togglePause()" [color]="speed === 'pause' ? 'red' : 'blue'">{{speed === 'pause' ?
+        'Resume' : 'Pause'}}</cvd-button>
+      <cvd-button (click)="gameService.setSpeed('fwd')">Fast</cvd-button>
+      <cvd-button (click)="gameService.setSpeed('max')">Skip to end</cvd-button>
+    </cvd-row>
+
+    <cvd-row wrap>
+      <cvd-button (click)="gameService.setSpeed('finished')">Results</cvd-button>
+      <cvd-button (click)="download()">Download</cvd-button>
+      <cvd-button (click)="save()">Save</cvd-button>
+    </cvd-row>
+  </cvd-row>
+
+  <mat-slide-toggle style="margin-top: 1.5rem" [checked]="isLightTheme$ | async"
+    (change)="isLightTheme = $event.checked">
+    Světlý režim
+  </mat-slide-toggle>
+
+</cvd-col>
