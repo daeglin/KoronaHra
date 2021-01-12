@@ -1,0 +1,23 @@
+@import '~src/definitions';
+
+:host {
+  @include panel;
+
+  @include apply-themes {
+    .color-virus {
+      color: mat-color(map-get($theme, warn));
+    }
+
+    .color-medicine {
+      color: mat-color(map-get($theme, accent));
+    }
+  }
+}
+
+.item {
+  margin: 0.75rem 0;
+
+  cvd-icon {
+    padding-right: 1rem;
+  }
+}

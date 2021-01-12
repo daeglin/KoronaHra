@@ -1,0 +1,6 @@
+@import '~src/definitions';
+@import '~src/material-definitions';
+
+:host {
+  @include flex-container;
+}
