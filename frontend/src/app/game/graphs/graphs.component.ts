@@ -8,7 +8,7 @@ import {filter, map} from 'rxjs/operators';
 import {formatNumber} from '../../utils/format';
 import {GameService} from '../game.service';
 import {MitigationsService} from '../mitigations-control/mitigations.service';
-import {ChartValue, colors, NodeState} from './line-graph/line-graph.component';
+import {ChartValue, colors, DataLabelNodes, NodeState} from './line-graph/line-graph.component';
 
 @UntilDestroy()
 @Component({
@@ -49,7 +49,7 @@ export class GraphsComponent implements AfterViewInit {
   immunized$: Observable<number> | undefined;
 
   mitigations$: Subscription | undefined;
-  mitigationNodes: (string | undefined)[] = [];
+  dataLabelNodes: DataLabelNodes[] = [];
   templateData: any | undefined;
   activeTab = 0;
 
@@ -89,7 +89,11 @@ export class GraphsComponent implements AfterViewInit {
       untilDestroyed(this),
       map(d => d.length),
     ).subscribe(length => {
-      this.mitigationNodes[length - 1] = this.currentMitigation;
+      this.dataLabelNodes[length - 1] = {event: undefined, mitigations: this.currentMitigation};
+      if (this.gameService.activatedEvent) {
+        this.dataLabelNodes[length - 1].event = this.gameService.activatedEvent;
+      }
+
       this.currentMitigation = undefined;
     });
 
@@ -124,7 +128,7 @@ export class GraphsComponent implements AfterViewInit {
       map(gameStates => gameStates.map(gs => ([
         {
           label: new Date(gs.date),
-          value: gs.stats.vaccinated,
+          value: gs.stats.vaccinated.total,
           tooltipLabel: (value: number) => `Očkovaní: ${formatNumber(value)}`,
           datasetOptions: {
             backgroundColor: `${colors.critical}33`,
@@ -136,7 +140,7 @@ export class GraphsComponent implements AfterViewInit {
         },
         {
           label: new Date(gs.date),
-          value: gs.stats.estimatedResistant,
+          value: gs.stats.estimatedResistant.total,
           tooltipLabel: (value: number) => `Imunní po nemoci: ${formatNumber(value)}`,
           datasetOptions: {
             label: 'Imunní po nemoci',
@@ -157,23 +161,25 @@ export class GraphsComponent implements AfterViewInit {
     this.templateData = [
       {
         label: 'Nově nakažení',
-        icon: 'virus',
+        icon: 'coronavirus',
         headerData$: this.infectedToday$.pipe(map(gs => last(gs)?.value)),
+        prefix: '+',
         data$: this.infectedToday$,
         customOptions: null,
         pipe: [false, false],
       },
       {
         label: 'Nově zemřelí',
-        icon: 'skull',
+        svgIcon: 'skull',
         headerData$: this.deathToday$.pipe(map(gs => last(gs)?.value)),
+        prefix: '+',
         data$: this.deathToday$,
         customOptions: null,
         pipe: [false, false],
       },
       {
         label: 'Celkové náklady',
-        icon: 'money',
+        svgIcon: 'money',
         headerData$: this.costTotal$.pipe(map(gs => last(gs)?.value)),
         data$: this.costTotal$,
         customOptions: this.costTotalCustomOptions,
@@ -181,7 +187,7 @@ export class GraphsComponent implements AfterViewInit {
       },
       {
         label: 'Imunní',
-        icon: 'hospital',
+        svgIcon: 'vaccine',
         headerData$: this.immunized$,
         multiLineData$: this.immunizedChart$,
         customOptions: this.immunizedCustomOptions,
@@ -195,7 +201,7 @@ export class GraphsComponent implements AfterViewInit {
       untilDestroyed(this),
     ).subscribe(() => {
       this.currentMitigation = undefined;
-      this.mitigationNodes = [];
+      this.dataLabelNodes = [];
     });
 
     // TODO connect to change-only mitigation structure
