@@ -3,12 +3,13 @@ import {FormControl} from '@angular/forms';
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {ChartOptions} from 'chart.js';
 import {last} from 'lodash';
-import {Observable, Subscription} from 'rxjs';
+import {Observable} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {formatNumber} from '../../utils/format';
 import {GameService} from '../game.service';
 import {MitigationsService} from '../mitigations-control/mitigations.service';
-import {ChartValue, colors, DataLabelNodes, NodeState} from './line-graph/line-graph.component';
+import {ChartValue, colors, DataLabelNode, NodeState} from './line-graph/line-graph.component';
+
 
 @UntilDestroy()
 @Component({
@@ -44,16 +45,20 @@ export class GraphsComponent implements AfterViewInit {
 
   infectedToday$: Observable<ChartValue[]> | undefined;
   costTotal$: Observable<ChartValue[]> | undefined;
-  deathToday$: Observable<ChartValue[]> | undefined;
+  deathTotal$: Observable<ChartValue[]> | undefined;
   immunizedChart$: Observable<ChartValue[][]> | undefined;
   immunized$: Observable<number> | undefined;
 
-  mitigations$: Subscription | undefined;
-  dataLabelNodes: DataLabelNodes[] = [];
+  dataLabelNodes: DataLabelNode[] = [];
   templateData: any | undefined;
   activeTab = 0;
 
-  private currentMitigation: string | undefined;
+  private readonly emptyDataLabelNode: DataLabelNode = {
+    uiChange: undefined,
+    event: undefined,
+  };
+
+  private newDataLabelNode: DataLabelNode = {...this.emptyDataLabelNode};
 
   private costDailyThresholds(value: number): NodeState {
     if (value < 500_000_000) return 'ok';
@@ -61,7 +66,7 @@ export class GraphsComponent implements AfterViewInit {
     return 'critical';
   }
 
-  private deathThresholds(value: number): NodeState {
+  private deathDailyThresholds(value: number): NodeState {
     if (value < 50) return 'ok';
     if (value < 150) return 'warn';
     return 'critical';
@@ -85,16 +90,24 @@ export class GraphsComponent implements AfterViewInit {
 
     const data$ = this.gameService.gameState$;
 
-    this.mitigations$ = data$.pipe(
-      untilDestroyed(this),
-      map(d => d.length),
-    ).subscribe(length => {
-      this.dataLabelNodes[length - 1] = {event: undefined, mitigations: this.currentMitigation};
-      if (this.gameService.activatedEvent) {
-        this.dataLabelNodes[length - 1].event = this.gameService.activatedEvent;
-      }
+    this.mitigationsService.changesDaily$.pipe(untilDestroyed(this)).subscribe(changed => {
+      const forcedChanges: string[] = [];
+      changed.changed.forEach(ch => {
+        forcedChanges.push(MitigationsService.mitigationsI18n[ch][String(changed.newValue[ch])]);
+      });
 
-      this.currentMitigation = undefined;
+      this.newDataLabelNode.uiChange = forcedChanges.length ? forcedChanges : undefined;
+    });
+
+    data$.pipe(
+      map(gameStates => gameStates.length),
+      untilDestroyed(this),
+    ).subscribe(length => {
+      if (this.gameService.activatedEvent) {
+        this.newDataLabelNode.event = this.gameService.activatedEvent;
+      }
+      this.dataLabelNodes[length - 1] = {...this.newDataLabelNode};
+      this.newDataLabelNode = {...this.emptyDataLabelNode};
     });
 
     this.infectedToday$ = data$.pipe(
@@ -115,12 +128,12 @@ export class GraphsComponent implements AfterViewInit {
       }))),
     );
 
-    this.deathToday$ = data$.pipe(
+    this.deathTotal$ = data$.pipe(
       map(gameStates => gameStates.map(gs => ({
         label: new Date(gs.date),
-        value: gs.stats.deaths.today,
-        tooltipLabel: (value: number) => `Nově zemřelí: ${formatNumber(value)}`,
-        state: this.deathThresholds(gs.stats.deaths.today),
+        value: gs.stats.deaths.total,
+        tooltipLabel: (value: number) => `Zemřelí: ${formatNumber(value)}`,
+        state: this.deathDailyThresholds(gs.stats.deaths.today),
       }))),
     );
 
@@ -169,11 +182,10 @@ export class GraphsComponent implements AfterViewInit {
         pipe: [false, false],
       },
       {
-        label: 'Nově zemřelí',
+        label: 'Zemřelí',
         svgIcon: 'skull',
-        headerData$: this.deathToday$.pipe(map(gs => last(gs)?.value)),
-        prefix: '+',
-        data$: this.deathToday$,
+        headerData$: this.deathTotal$.pipe(map(gs => last(gs)?.value)),
+        data$: this.deathTotal$,
         customOptions: null,
         pipe: [false, false],
       },
@@ -200,21 +212,8 @@ export class GraphsComponent implements AfterViewInit {
     this.gameService.reset$.pipe(
       untilDestroyed(this),
     ).subscribe(() => {
-      this.currentMitigation = undefined;
+      this.newDataLabelNode = {...this.emptyDataLabelNode};
       this.dataLabelNodes = [];
     });
-
-    // TODO connect to change-only mitigation structure
-    // and make mitigationNodes a dictionary of dates
-    for (const mitigation of Object.keys(MitigationsService.mitigationsI18n)) {
-      this.mitigationsService.formGroup.get(mitigation)?.valueChanges.pipe(
-        untilDestroyed(this),
-      ).subscribe((value: any) => {
-        const label = this.mitigationsService.getLabel(
-          mitigation as keyof typeof MitigationsService.mitigationsI18n, value);
-        if (this.currentMitigation) this.currentMitigation += '\n' + label;
-        else this.currentMitigation = label;
-      });
-    }
   }
 }
