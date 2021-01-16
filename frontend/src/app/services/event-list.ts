@@ -1,6 +1,6 @@
 import {EventChoiceDef, EventInput, EventMitigation, EventTrigger} from './events';
 import {dateDiff} from './utils';
-import {isNil, random} from 'lodash';
+import {isNil, sample} from 'lodash';
 
 // Event mitigation IDs
 const TUTORIAL_ID = 'tutorial';
@@ -15,7 +15,13 @@ const SELF_ISOLATION_TRIGGER = 'selfIsolation';
 const ANTIVAX_WITHOUT_CAMPAIGN_TRIGGER = 'antivaxWithoutCampaignTrigger';
 const ANTIVAX_WITH_CAMPAIGN_TRIGGER = 'antivaxWithCampaignTrigger';
 
+// Winter events
+const WINTER_EVENTS = ['skiareals', 'christmas', 'newYear'] as const;
+type WinterEvent = typeof WINTER_EVENTS[number];
+
 const selfIsolationThreshold = 2000 / 7;
+const selfIsolationMitigation1 = {rMult: 0.8, economicCost: 200_000_000};
+
 
 /**
  * Generate first true randomly between given dates
@@ -35,10 +41,6 @@ function randomDateBetweenTrigger(date: string, dateFrom: string, dateTo: string
     // after given interval
     return false;
   }
-}
-
-function dateBetween(date: string, dateFrom: string, dateTo: string) {
-  return date >= dateFrom && date <= dateTo;
 }
 
 /**
@@ -73,18 +75,22 @@ function isEventTriggerActive(eventInput: EventInput, id: string) {
 }
 
 export interface EventData {
+  winterEvent: WinterEvent;
   aboveSelfIsolationThresholdDays: number;
   belowSelfIsolationThresholdDays: number;
   showAntivaxEvent: boolean;
   minStability: number;
 }
 
-export const initialEventData: EventData = {
-  aboveSelfIsolationThresholdDays: 0,
-  belowSelfIsolationThresholdDays: 0,
-  showAntivaxEvent: false,
-  minStability: 50,
-};
+export function initialEventData(): EventData {
+  return {
+    winterEvent: sample(WINTER_EVENTS) as WinterEvent, // sample returns WinterEvent | undefined
+    aboveSelfIsolationThresholdDays: 0,
+    belowSelfIsolationThresholdDays: 0,
+    showAntivaxEvent: false,
+    minStability: 50,
+  };
+}
 
 /**
  * Callback that is called every day before trigger conditions are evaluated
@@ -133,25 +139,24 @@ const antivaxEventTexts = [
     text: 'Lidé mají strach, že nová vakcína proti koronaviru je nedostatečně testovaná a očkování proto odmítají',
   },
   {
-    title: 'Čeští odpůrci sepsali petici proti očkování',
-    text: 'Mezi obyvateli se šíří obava z očkování proti koronaviru',
+    title: 'České celebrity sepsali petici proti očkování',
+    text: 'Odpor vůči očkování se šíří',
   },
   {
-    title: 'Strachem proti očkování, odpůrci spustili online kampaň',
-    text: 'Odpůrci začali koordinovaně rozesílat zprávy, které mají nalomit důvěru lidí v očkování proti Covidu-19',
+    title: 'Lékař zemřel po očkování',
+    text: 'Lékař v USA zemřel po očkování. Detaily případu jsou zatím neznámé, občani se obávají očkování.',
   },
   {
-    title: 'Češi popisují první pociťované vedlejší vedlejší účinky vakcíny proti covidu',
+    title: 'Horečky, průjmy, zimnce: Češi popisují první pociťované vedlejší vedlejší účinky vakcíny proti covidu',
     text: 'Lidé mají strach z vedlejších účinků očkování a vakcínu proto odmítají',
   },
   {
-    title: 'Vakcínu píchli premiérovi jen naoko',
-    text: 'Sociálními sítěmi se šíří nový hoax o tom, že premiér byl fingovaně očkován jehlou s krytem',
+    title: 'Lékař ukázal pět jednoduchých triků jak vyléčit koronavirus doma',
+    text: 'Kardiolog na svém populárním blogu dokazuje, že drtivá většina lidí se může snadno uzdravit sama a nepotřebuje očkování.',
   },
 ];
 
 // no type check below for interpolated attributes
-// TODO use rounded values
 export const eventTriggers: EventTrigger[] = [
   /****************************************************************************
    *
@@ -262,8 +267,7 @@ Hodně štěstí!',
       {
         title: 'Opozice vyzývá vládu k rezignaci a obyvatelstvo k opatrnosti!',
         help: 'Pozor, situace je velmi špatná. Pokud to tak půjde dál, přijdete o šanci zkusit pandemii zvládnout. Může být nutné uvolnit některá opatření v panelu vpravo nahoře nebo začít na stejném místě platit kompenzace.',
-        // TODO effect on R?
-        choices: okButton({name: 'Výzvy k rezignaci', duration: 90}),
+        choices: okButton({...selfIsolationMitigation1, name: 'Výzvy k rezignaci', duration: 30}),
       },
     ],
     condition: (ei: EventInput) => ei.stats.stability <= -30,
@@ -372,7 +376,7 @@ Hodně štěstí!',
             buttonLabel: 'OK',
             mitigations: [
               {stabilityCost: 5},
-              {rMult: 0.8, economicCost: 200_000_000, duration: 14},
+              {...selfIsolationMitigation1, duration: 14},
             ],
           },
         ],
@@ -391,7 +395,7 @@ Hodně štěstí!',
             buttonLabel: 'OK',
             mitigations: [
               {stabilityCost: 10},
-              {rMult: 0.8, economicCost: 200_000_000, duration: 14},
+              {...selfIsolationMitigation1, duration: 14},
             ],
           },
         ],
@@ -464,7 +468,7 @@ Hodně štěstí!',
         choices: okButton({name: 'Prázdniny', id: SCHOOL_HOLIDAYS_ID, duration: 62}, 'Začátek prázdnin'),
       },
     ],
-    condition: (ei: EventInput) => dateBetween(ei.date, '2020-06-30', '2020-07-31'),
+    condition: (ei: EventInput) => ei.date === '2020-06-30',
     reactivateAfter: 60,
   },
   {
@@ -476,7 +480,7 @@ Hodně štěstí!',
         choices: okButtonEndMitigation(SCHOOL_HOLIDAYS_ID, 'Konec prázdnin'),
       },
     ],
-    condition: (ei: EventInput) => dateBetween(ei.date, '2020-09-01', '2020-09-30'),
+    condition: (ei: EventInput) => ei.date === '2020-09-01',
     reactivateAfter: 60,
   },
   {
@@ -486,8 +490,7 @@ Hodně štěstí!',
         choices: okButton({name: 'Teplé počasí', id: WARM_WEATHER_ID, duration: 120}, 'Teplé počasí'),
       },
     ],
-    condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-05-20', '2020-06-14')
-      || dateBetween(ei.date, '2020-06-14', '2020-07-14'),
+    condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-05-20', '2020-06-14'),
     reactivateAfter: 90,
   },
   {
@@ -498,8 +501,7 @@ Hodně štěstí!',
         choices: okButtonEndMitigation(WARM_WEATHER_ID, 'Konec teplého počasí'),
       },
     ],
-    condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-09-10', '2020-10-09')
-      || dateBetween(ei.date, '2020-10-09', '2020-11-09'),
+    condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-09-10', '2020-10-09'),
     reactivateAfter: 90,
   },
   /****************************************************************************
@@ -508,41 +510,48 @@ Hodně štěstí!',
    *
    ****************************************************************************/
   {
+    // TODO don't do first two evets if face masks are not on
     events: [
       {
-        title: 'Skandál ministra',
-        text: 'Ministr porušil svá vlastní pravidla. V jeho vile se na večírku sešlo přes dvacet osob!',
+        title: 'Ministr porušil svá vlastní pravidla, nakupoval zcela bez roušky.',
         help: 'Pokud ministr po porušení vlastních nařízení setrvá na místě, mohou se obyvatelé bouřit, což znamená pokles společenské stability. Vyhození ministra, který je ve své práci již zaběhlý, může výrazně posunout začátek očkování.',
         choices: [
-          // todo: fire -> postpone vaxination start
+          // TODO: fire -> postpone vaxination start
           simpleChoice('Vyhodit ministra', {vaccinationPerDay: -0.0001, duration: Infinity}),
           simpleChoice('Neřešit prohřešek', {stabilityCost: 5}),
         ],
       },
       {
-        title: 'Odhalili jsme: předražené zakázky za miliardy!',
-        text: 'Jeden z našich dodavatelů trasování si účtuje mnohem víc peněz než je v branži zvykem, ale zároveň jsme na jeho dodávkách závislí.',
-        help: 'Pokud budeme nadále setrvávat s dosavadním dodavatelem, ztratíme na nevýhodných zakázkách více peněz. Bez těchto dodávek se ale zvýší hodnota R.',
+        title: 'Nejsem ovce a nebudu se podřizovat bludům. Roušku symbolicky odmítám',
+        text: 'Celebrita veřejně odsuzuje nošení roušek a byla bez ní několikrát vyfocena v obchodech i při dalších příležitostech. Část médií žádá pokutu.',
+        help: 'Pokud významná osobnost nebude potrestána může to vést k menší disciplíně obyvatelstva při dodržování opatření, což může přinést, jak nové nakažené, tak negativně ovlivnit hodnotu R. Jeho potrestání však může pobouřit jeho příznivce a negativně tak ovlivnit společenskou stabilitu.',
+        choices: [
+          simpleChoice('Neřešit prohřešek', {name: 'Celebrita odmítá roušku', rMult: 1.1, duration: 30}),
+          simpleChoice('Potrestat politika jako ostatní', {stabilityCost: 3}),
+        ],
+      },
+      {
+        title: 'Investigativní novináři odhalili násobně předražené nákupy!',
+        text: 'Jeden z našich dodavatelů lékařského vybavení si účtuje mnohem víc peněz než je v branži zvykem, ale zároveň jsme na jeho dodávkách závislí. Změna může krátkodobě znamenat výpadek dodávek a s ním větší šíření nemoci.',
+        help: 'Pokud budeme nadále setrvávat s dosavadním dodavatelem, ztratíme na nevýhodných zakázkách více peněz. Bez těchto dodávek se ale bude nemoc krátkodobě více šířit.',
         choices: [
           simpleChoice('Zůstat s dodavatelem', {economicCost: 5_000_000_000}),
-          simpleChoice('Změnit dodavatele', {rMult: 1.05}),
+          simpleChoice('Změnit dodavatele', {name: 'Změna dodavatele', rMult: 1.1, duration: 30}),
         ],
       },
       {
-        title: 'Nejsem ovce, nošení roušky odmítám! Přežijí silnější.',
-        text: 'Významný politik veřejně odsuzuje nošení roušek a byl bez ní několikrát vyfocen v obchodě',
-        help: 'Pokud významná politická osobnost nebude potrestána může to vést k menší disciplíně obyvatelstva při dodržování opatření, což může přinést, jak nové nakažené, tak negativně ovlivnit hodnotu R. Jeho potrestání však může pobouřit jeho příznivce a negativně tak ovlivnit společenskou stabilitu.',
+        title: 'Jak zažije Česko první volby ve znamení koronaviru?',
+        text: 'Vláda zvažuje zavedení korespondenční volby.',
+        help: 'Radikální proměny volebního procesu obyvatelstvo popudí a zvýší nedůvěru. Pokud volby proběhnou jako vždy, riskujeme šíření nemoci.',
         choices: [
-          simpleChoice('Neřešit prohřešek', {rMult: 1.02, exposedDrift: random(1000, 2000)}),
-          simpleChoice('Potrestat politika jako ostatní', {stabilityCost: 2}),
-        ],
-      },
-      {
-        title: 'Zažije Česko první volby ve znamení koronaviru?',
-        help: 'Odložení voleb obyvatelstvo popudí a negativně se odrazí ve společenské stabilitě. Pokud volby proběhnou, přibude nakažených.',
-        choices: [
-          simpleChoice('Odložit volby', {stabilityCost: random(4, 8, true)}),
-          simpleChoice('Nechat volby proběhnout', {exposedDrift: random(2000, 5000)}),
+          simpleChoice('Korespondenční volby', {stabilityCost: 5}),
+          {
+            buttonLabel: 'Prezenční volby',
+            mitigations: [
+              {name: 'Volby', rMult: 1.3, duration: 14},
+              {exposedDrift: 500},
+            ],
+          },
         ],
       },
     ],
@@ -556,39 +565,57 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Vláda se zabývá otevřením skiaeálů. Situace komplikuje rozhodnutí.',
-        help: 'Otevření skiareálů zvýší počet nakažených v řádu tisíců. Jejich zavření na druhou stranu negativně ovlivní společenskou stabilitu.',
+        title: 'Vláda se zabývá možností otevření skiaeálů',
+        text: 'Vlekaři žádají výjimku, někteří epidemiologové žádají preventivně zavřít.',
+        help: 'Zavření skiareálů rozčílí hodně lidí a připraví je o oblíbené zimní sporty. Jejich otevření ale může vést k vyššímu riziku šíření.',
         choices: [
-          simpleChoice('Otevřít skiareály', {exposedDrift: random(2000, 5000)}),
+          simpleChoice('Otevřít skiareály', {name: 'Skiareály', rMult: 1.2, duration: 60}),
           simpleChoice('Neotevřít', {stabilityCost: 5}),
         ],
       },
-      // Vánoční svátky
+    ],
+    condition: (ei: EventInput) => ei.eventData.winterEvent === 'skiareals'
+      && randomDateBetweenTrigger(ei.date, '2020-12-02', '2020-12-20'),
+  },
+  {   // Vánoční svátky
+    events: [
       {
         title: 'Vánoce během koronaviru: Jaké svátky nás letos čekají?',
-        text: 'Pro období svátků je možné zpřísnit opatření, nebo naopak udělit výjimky z opatření.',
+        text: 'Vláda zvažuje zákaz půlnočních a rodinných setkání nad 6 osob.',
         help: 'Lze očekávat, že udělení výjimek pro období svátků obyvatelé ocení a pozitivně se tak promítne do společenské stability, ale zato přinese větší počet nových nakažených. Přísná opatření se zase naopak setkají s nevolí obyvatel a poklesem společenské stability.',
         choices: [
-          simpleChoice('Povolit mše', {stabilityCost: -2, exposedDrift: random(500, 1500)}),
-          simpleChoice('Povolit rodinná setkání nad 6 lidí', {stabilityCost: -2,
-            exposedDrift: random(1000, 2000)}),
-          simpleChoice('Povolit obojí', {stabilityCost: -5, exposedDrift: random(1500, 4000)}),
-          simpleChoice('Zakázat mše i rodinná setkání', {stabilityCost: 5}),
+          {
+            buttonLabel: 'Povolit půlnoční i rodinná setkání',
+            mitigations: [
+              {stabilityCost: -5},
+              {name: 'Vánoce', rMult: 1.5, duration: 7},
+            ],
+          },
+          simpleChoice('Zakázat', {stabilityCost: 5}),
         ],
       },
-      // Silvestr
+    ],
+    condition: (ei: EventInput) => ei.eventData.winterEvent === 'christmas' && ei.date === '2020-12-22',
+  },
+  { // Silvestr
+    events: [
       {
         title: 'Jak česko oslaví příchod nového roku v době pandemie covid-19?',
         text: 'Pro období svátků je možné zpřísnit opatření, nebo naopak udělit výjimky z opatření.',
         help: 'Pokud budou opatření zpřísněna, lze očekávat vlnu nevole obyvatel a snížení společenské stability. Výjimky z opatření sice společenskou stabilitu lehce zvýší, ale povedou ke zvýšení počtu nemocných.',
         choices: [
-          simpleChoice('Povolit večerní vycházení na Silvestra', {stabilityCost: -2,
-            exposedDrift: random(10000, 20000)}),
-          simpleChoice('Nepovolovat večerní vycházení na Silvestra', {stabilityCost: 5}),
+          {
+            buttonLabel: 'Povolit večerní vycházení na Silvestra',
+            mitigations: [
+              {stabilityCost: -2},
+              {name: 'Silvestr', rMult: 1.5, duration: 3},
+            ],
+          },
+          simpleChoice('Nepovolovat', {stabilityCost: 4}),
         ],
       },
     ],
-    condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-12-02', '2020-12-20'),
+    condition: (ei: EventInput) => ei.eventData.winterEvent === 'newYear' && ei.date === '2020-12-30',
   },
   /****************************************************************************
    *
@@ -625,9 +652,8 @@ Hodně štěstí!',
         ],
       },
     ],
-    // TODO timing randomization
-    condition: (ei: EventInput) => ei.date >= '2021-01-01',
-    reactivateAfter: 90,
+    condition: (ei: EventInput) => ei.date === '2020-12-01' || ei.date > '2021-01-01' && probability(0.05),
+    reactivateAfter: 80,
   },
   {
     events: [
