@@ -205,13 +205,15 @@ export const eventTriggers: EventTrigger[] = [
     events: [
       {
         title: 'Základní statistiky (levý dolní panel)',
-        text: '<p>Statistiky slouží jako rychlý přehled toho nejdůležitějšího.</p> \
-<p>Nakažení: Aktuální počet nemocných + nově nakažení \
-Zemřelí: Aktuální počet zemřelých + nově zemřelí \
-Imunní: Aktuální počet imunních + nově imunní \
-Náklady: Aktuální velikost nákladů + nové náklady \
-Společenská stabilita: reakce společnosti na vaše kroky. Pokud zavádíte příliš omezující opatření, nebo naopak umírá příliš lidí, může dojít k výměně vlády a hra skončí \
-Kapacita nemocnic: pokud překročíte kapacitu nemocnic, zhroší se péče o nemocné a zemřelých tak bude přibývat více \ </p>',
+        text: '<p>Statistiky slouží jako rychlý přehled toho nejdůležitějšího.</p>\
+<ul>
+<li><strong>Nakažení</strong>: Aktuální počet nemocných + nově nakažení</li>\
+<li><strong>Zemřelí</strong>: Aktuální počet zemřelých + nově zemřelí</li>\
+<li><strong>Imunní</strong>: Aktuální počet imunních + nově imunní</li>\
+<li><strong>Náklady</strong>: Aktuální velikost nákladů + nové náklady</li>\
+<li><strong>Společenská stabilita</strong>: reakce společnosti na vaše kroky. Pokud zavádíte příliš omezující opatření, nebo naopak umírá příliš lidí, může dojít k výměně vlády a hra skončí</li>\
+<li><strong>Kapacita nemocnic</strong>: pokud překročíte kapacitu nemocnic, zhroší se péče o nemocné a zemřelých tak bude přibývat více</li>\
+</ul>',
         help: 'Průvodce: Zvláštní pozornost věnujte ukazateli společenské stability. Její propad na minimum je jediný způsob, jak může vaše hra skončit ještě před dostatečnou imunizací.',
       },
     ],
