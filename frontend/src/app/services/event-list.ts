@@ -169,13 +169,14 @@ export const eventTriggers: EventTrigger[] = [
     events: [
       {
         title: 'První případ nákazy koronavirem!',
-        text: '<p>Nemocí Covid-19 se v Česku nakazil první člověk a řešení této situace máte teď ve svých rukou. Než se do toho pustíte, měli byste vědět tohle: </p> \
-<p>Aktivní opatření jsou označena modře, šedá naopak znamená, že opatření aktuálně není zavedeno \
-- Každé opatření má různý vliv na šíření koronaviru \
-- Pamatujte, že nějaký čas trvá, než se opatření na množství nakažených projeví \
-- Hru můžete vždy pozastavit mezerníkem nebo tlačítkem pauza \
-- Když nebudete vědět jak hru ovládat a co jednotlivé věci znamenají, najeďte myší na otazníky v rozích jednotlivých panelů \ </p>',
-        help: 'Zelená barva značí komentář průvodce. Průvodce toho hodně ví, a proto vám bude radit, co by v nastalé situaci bylo dobré udělat. To, jestli jeho rady poslechnete, už je jen na vás!',
+        text: '<p>Nemocí Covid-19 se v Česku nakazil první člověk a řešení této situace máte teď ve svých rukou. Než se do toho pustíte, měli byste vědět tohle:</p>\
+<ul>\
+  <li>Aktivní opatření jsou označena modře, šedá naopak znamená, že opatření aktuálně není zavedeno</li>\
+  <li>Každé opatření má různý vliv na šíření koronaviru</li>\
+  <li>Pamatujte, že nějaký čas trvá, než se opatření na množství nakažených projeví</li>\
+  <li>Hru můžete vždy pozastavit mezerníkem nebo tlačítkem pauza</li>\
+  <li>Když nebudete vědět jak hru ovládat a co jednotlivé věci znamenají, najeďte myší na otazníky v rozích jednotlivých panelů</li>',
+        help: 'Modrá barva značí komentář průvodce. Průvodce toho hodně ví, a proto vám bude radit, co by v nastalé situaci bylo dobré udělat. To, jestli jeho rady poslechnete, už je jen na vás!',
         choices: [
           simpleChoice('Chci vidět ovládání', {id: TUTORIAL_ID, duration: maxMitigationDuration}),
           simpleChoice('Chci přímo do hry'),
