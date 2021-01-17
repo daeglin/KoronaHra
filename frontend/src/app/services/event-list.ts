@@ -7,8 +7,6 @@ export const maxMitigationDuration = Number.MAX_SAFE_INTEGER;
 // Event mitigation IDs
 const TUTORIAL_ID = 'tutorial';
 const SELF_ISOLATION_ID = 'selfIsolation';
-const SCHOOL_HOLIDAYS_ID = 'schoolHolidays';
-const WARM_WEATHER_ID = 'warmWeather';
 const VACCINATION_CAMPAIGN_ID = 'vaccinationCampaign';
 const VACCINATION_CAMPAIGN_PAID_ID = 'vaccinationCampaignPaid';
 
@@ -175,7 +173,8 @@ export const eventTriggers: EventTrigger[] = [
   <li>Každé opatření má různý vliv na šíření koronaviru</li>\
   <li>Pamatujte, že nějaký čas trvá, než se opatření na množství nakažených projeví</li>\
   <li>Hru můžete vždy pozastavit mezerníkem nebo tlačítkem pauza</li>\
-  <li>Když nebudete vědět jak hru ovládat a co jednotlivé věci znamenají, najeďte myší na otazníky v rozích jednotlivých panelů</li>',
+  <li>Když nebudete vědět jak hru ovládat a co jednotlivé věci znamenají, najeďte myší na otazníky v rozích jednotlivých panelů</li>\
+</ul>',
         help: 'Modrá barva značí komentář průvodce. Průvodce toho hodně ví, a proto vám bude radit, co by v nastalé situaci bylo dobré udělat. To, jestli jeho rady poslechnete, už je jen na vás!',
         choices: [
           simpleChoice('Chci vidět ovládání', {id: TUTORIAL_ID, duration: maxMitigationDuration}),
@@ -188,9 +187,9 @@ export const eventTriggers: EventTrigger[] = [
   {
     events: [
       {
-        title: 'Grafy (levý horní panel)',
+        title: 'Grafy (tento panel)',
         text: '<p>Hlavní zdroj informací o aktuální situaci ve státě. Překlikávat můžete mezi těmito čtyřmi grafy:</p> \
-<ul style="list-style-type: none">\
+<ul>\
 <li><strong>Ikonka viru</strong>: (Nové nakažení) Tento graf zobrazuje, kolik lidí se v daný den nově nakazilo</li>\
 <li><strong>Ikonka lebky</strong>:(Zemřelí) Počet zemřelých denně. Tento graf zobrazuje lidi, kteří zemřeli přímo na Covid-19. Mějte ale na mysli i další okolnosti. Například přetížené nemocnice bez volných kapacit vedou k více úmrtím.</li>\
 <li><strong>Ikonka peněz</strong>: (Náklady) Graf nákladů značí ztráty, které státní kase i ekonomice jako celku pandemie přináší. Zavádění opatření, vyplácení kompenzací i hospitalizace - to vše stojí peníze.</li>\
@@ -204,13 +203,10 @@ export const eventTriggers: EventTrigger[] = [
   {
     events: [
       {
-        title: 'Základní statistiky (levý dolní panel)',
+        title: '[TODO] Horní panel',
         text: '<p>Statistiky slouží jako rychlý přehled toho nejdůležitějšího.</p>\
 <ul>\
-<li><strong>Nakažení</strong>: Aktuální počet nemocných + nově nakažení</li>\
-<li><strong>Zemřelí</strong>: Aktuální počet zemřelých + nově zemřelí</li>\
-<li><strong>Imunní</strong>: Aktuální počet imunních + nově imunní</li>\
-<li><strong>Náklady</strong>: Aktuální velikost nákladů + nové náklady</li>\
+<li><strong>Datum</strong></li>\
 <li><strong>Společenská stabilita</strong>: reakce společnosti na vaše kroky. Pokud zavádíte příliš omezující opatření, nebo naopak umírá příliš lidí, může dojít k výměně vlády a hra skončí</li>\
 <li><strong>Kapacita nemocnic</strong>: pokud překročíte kapacitu nemocnic, zhroší se péče o nemocné a zemřelých tak bude přibývat více</li>\
 </ul>',
@@ -475,7 +471,7 @@ Hodně štěstí!',
       {
         title: 'Školáci dnes dostávají vysvědčení a začínají jim prázdnin',
         help: 'Žáci a studenti se o prázdninách ve školách nepotkávají. Opatření “uzavření škol” bylo aktivováno bez dalších nákladů.',
-        choices: okButton({name: 'Prázdniny', id: SCHOOL_HOLIDAYS_ID, duration: 62}, 'Začátek prázdnin'),
+        choices: okButton(undefined, 'Začátek prázdnin'),
       },
     ],
     condition: (ei: EventInput) => ei.date === '2020-06-30',
@@ -486,7 +482,7 @@ Hodně štěstí!',
       {
         title: 'Prázdniny skončily a školáci se vrací do škol. Máme očekávat zhoršení situace?',
         help: 'Opatření “uzavření škol” opět vyžaduje další náklady a snižuje společenskou stabilitu. Můžete je nechat zavřené, ale opatření už nebude automaticky zdarma.',
-        choices: okButtonEndMitigation(SCHOOL_HOLIDAYS_ID, 'Konec prázdnin'),
+        choices: okButton(undefined, 'Konec prázdnin'),
       },
     ],
     condition: (ei: EventInput) => ei.date === '2020-09-01',
@@ -497,7 +493,7 @@ Hodně štěstí!',
       {
         title: 'Virus se v teplém počasí hůř šíří. Vědci předpokládají zpomalení pandemie',
         help: 'V létě tráví lidé více času venku a šance se nakazit je přirozeně snížená. Možná je teď vhodný čas uvolnit některá opatření. ',
-        choices: okButton({name: 'Teplé počasí', id: WARM_WEATHER_ID, duration: 120}, 'Teplé počasí'),
+        choices: okButton(undefined, 'Teplé počasí'),
       },
     ],
     condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-05-20', '2020-06-14'),
@@ -508,10 +504,33 @@ Hodně štěstí!',
       {
         title: 'Chladné počasí počasí pomáhá šíření koronaviru, tvrdí epidemiologové',
         help: 'V chladném počasí se lidé více potkávají v malých prostorách a virus se šíří rychleji. Jeden nakažený zvládne nakazit více lidí. Možná je vhodný čas zavést opatření.',
-        choices: okButtonEndMitigation(WARM_WEATHER_ID, 'Konec teplého počasí'),
+        choices: okButton(undefined, 'Konec teplého počasí'),
       },
     ],
     condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-09-10', '2020-10-09'),
+    reactivateAfter: 90,
+  },
+  /****************************************************************************
+   *
+   * Government gets report card at the end of the school year
+   *
+   ****************************************************************************/
+  {
+    events: [
+      {
+        title: 'Vláda dostala vysvědčení',
+        text: '\
+<p>Několik dní před tím než dostanou vysvědčení školáci je příležitost hodnotit i vaše působení ve vládě od začátku pandemie.</p>\
+<p>Ve skutečné České republice došlo k 30. 6. 2020 k 347 úmrtím osob hospitalizovaných s nemocí Covid-19. Vám v simulaci zemřelo {{stats.deaths.total}} osob.</p>\
+<p>Náklady České republiky na zvládnutí prvních tří měsíců pandemie odhadujeme na XY (= zjišťujeme). Vy jste zaplatili {{stats.costs.total}}Kč</p>',
+        help: 'První vlna může být překvapivá a nepříjemná. Možná nejste spokojeni s tím, jak se vám povedla a chcete to zkusit znovu, pak stačí zmáčknout <em>Restart</em>. Pokud chcete pokračovat dál, zmáčkněte <em>Jedeme dál</em>.',
+        choices: [
+          simpleChoice('[TODO] Restart'),
+          simpleChoice('Jedeme dál'),
+        ],
+      },
+    ],
+    condition: (ei: EventInput) => ei.date === '2020-06-29',
     reactivateAfter: 90,
   },
   /****************************************************************************
@@ -627,6 +646,53 @@ Hodně štěstí!',
     condition: (ei: EventInput) => ei.eventData.winterEvent === 'newYear' && ei.date === '2020-12-30',
   },
   /****************************************************************************
+   *
+   * Spring 2021 package events
+   *
+   ****************************************************************************/
+  {
+    events: [
+      {
+        title: 'Únik dat způsobený neopatrností!',
+        help: 'Únik dat z očkovacího registračního může způsobit mnoho problémů všem stranám. Pokud přiznáte pochybení, lidé budou rozčilení. Pokud jej popřete, mohou nastat dvě situace: buď budete odhaleni a obyvaté budou popuzeni výrazně více, nebo vám lež projde, hrstka lidí si bude stěžovat, ale národ zůstane uklidněn.',
+        choices: [
+          simpleChoice('Přiznat chybu', {stabilityCost: 3}),
+          // TODO Randomization
+          {
+            buttonLabel: 'Oznámit, že je vše pod kontrolou',
+            mitigations: [
+              {stabilityCost: 3},
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Odhalení fatální bezpečnostní díry očkovacího systému',
+        help: 'Okamžité stažení systému může je bezpečná varianta, která s sebou ale nese zpoždění očkování o dva týdny. Pokud se pokusíte obyvatele uklidnit, problém popřít a nechat systém nasazený, může (ale nemusí) se stát, že zranitelný systém bude nabourán a očkování se pozdrží o výrazně delší dobu.',
+        choices: [
+          simpleChoice('Okamžitě stáhnout systém',
+            {vaccinationPerDay: -1, duration: 14},
+            'Pozastaven očkovací systém'),
+          // TODO Randomization
+          {
+            buttonLabel: 'Uklidnit obyvatele',
+            mitigations: [
+            ],
+          },
+         ],
+      },
+      {
+        title: 'Hackeři zaútočili na systém registrace očkování',
+        help: 'Hackeři vyžadují “výkupné” za napadený systém. Buď jim částku zaplatíte, nebo je odmítnete, ale náprava škod bude trvat další týden, po který nebude možné se registrovat k očkování.',
+        choices: [
+          simpleChoice('Zaplatit 10 miliónů' , {economicCost: 10_000_000}),
+          simpleChoice('Odmítnout', {vaccinationPerDay: -1, duration: 7}, 'Hackeři'),
+        ],
+      },
+    ],
+    condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2021-03-13', '2021-05-15'),
+  },
+   /****************************************************************************
    *
    * Vaccination events
    *
