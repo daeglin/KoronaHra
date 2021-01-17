@@ -113,12 +113,7 @@ export class GameService {
     }
 
     const gameUpdate = this.game.moveForward();
-<<<<<<< HEAD
-    const events = gameUpdate.events;
-    this.showEvents(events);
-=======
     this.showEvents(gameUpdate.events);
->>>>>>> upstream/master
 
     this._endOfDay$.next();
     if (updateChart) this.updateChart();
@@ -129,12 +124,7 @@ export class GameService {
     if (!events || events.length === 0) return;
     if (this.speed === 'max') return;
 
-<<<<<<< HEAD
-    this.events = this.events.concat(events);
-    this.currentEvent = this.events.shift();
-=======
     this.eventQueue = this.eventQueue.concat(events);
->>>>>>> upstream/master
     this.setSpeed('pause');
   }
 
