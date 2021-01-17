@@ -27,7 +27,7 @@ export class EventsLayoutComponent {
       }
     }
 
-    this.gameService.currentEvent = this.gameService.events.shift();
+    this.gameService.removeEvent();
     if (!this.gameService.currentEvent) {
       this.gameService.setSpeed('play');
     }

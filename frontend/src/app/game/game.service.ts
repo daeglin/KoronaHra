@@ -20,8 +20,7 @@ export class GameService {
   readonly REVERSE_SPEED = 50; // ms
 
   game!: Game;
-  currentEvent: Event | undefined;
-  events: Event[] = [];
+  eventQueue: Event[] = [];
   tickerId: number | undefined;
   activatedEvent: ActivatedEvent | undefined;
 
@@ -53,8 +52,7 @@ export class GameService {
   restartSimulation(speed: Speed = 'play', scenario: keyof typeof scenarios = 'czechiaGame') {
     this.setSpeed('pause');
     this.game = new Game(scenarios[scenario]);
-    this.currentEvent = undefined;
-    this.events = [];
+    this.eventQueue = [];
     this._reset$.next();
     this.setSpeed(speed);
     this.showEvents(this.game.rampUpEvents);
@@ -87,7 +85,7 @@ export class GameService {
     if (speed === 'max') {
       while (!this.game.isFinished()) this.tick(false);
       this.updateChart();
-      this.setSpeed('pause');
+      this.setSpeed('finished');
     } else if (speed === 'play') {
       this.tickerId = window.setInterval(() => this.tick(), this.PLAY_SPEED);
     } else if (speed === 'fwd') {
@@ -115,8 +113,12 @@ export class GameService {
     }
 
     const gameUpdate = this.game.moveForward();
+<<<<<<< HEAD
     const events = gameUpdate.events;
     this.showEvents(events);
+=======
+    this.showEvents(gameUpdate.events);
+>>>>>>> upstream/master
 
     this._endOfDay$.next();
     if (updateChart) this.updateChart();
@@ -127,9 +129,21 @@ export class GameService {
     if (!events || events.length === 0) return;
     if (this.speed === 'max') return;
 
+<<<<<<< HEAD
     this.events = this.events.concat(events);
     this.currentEvent = this.events.shift();
+=======
+    this.eventQueue = this.eventQueue.concat(events);
+>>>>>>> upstream/master
     this.setSpeed('pause');
+  }
+
+  removeEvent() {
+    this.eventQueue.shift();
+  }
+
+  get currentEvent() {
+    return this.eventQueue[0];
   }
 
   getGameData(): GameData {
@@ -144,6 +158,6 @@ export class GameService {
 
   save() {
     const gameData = this.getGameData();
-    this.httpClient.post('/api/game-data', gameData).subscribe();
+    return this.httpClient.post('/api/game-data', gameData);
   }
 }

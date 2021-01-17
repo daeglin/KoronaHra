@@ -94,7 +94,7 @@ export class EventHandler {
         || ts.trigger.reactivateAfter !== undefined && ts.activeBefore >= ts.trigger.reactivateAfter);
     const triggered = active.filter(ts => ts.trigger.condition(eventInput));
 
-    if (!triggered) return;
+    if (triggered.length === 0) return;
 
     triggered.forEach(ts => ts.activeBefore = 0);
 
