@@ -206,7 +206,7 @@ export const eventTriggers: EventTrigger[] = [
       {
         title: 'Základní statistiky (levý dolní panel)',
         text: '<p>Statistiky slouží jako rychlý přehled toho nejdůležitějšího.</p>\
-<ul>
+<ul>\
 <li><strong>Nakažení</strong>: Aktuální počet nemocných + nově nakažení</li>\
 <li><strong>Zemřelí</strong>: Aktuální počet zemřelých + nově zemřelí</li>\
 <li><strong>Imunní</strong>: Aktuální počet imunních + nově imunní</li>\
