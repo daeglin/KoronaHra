@@ -137,11 +137,11 @@ function okButtonEndMitigation(id: string, chartLabel?: string): [EventChoiceDef
 
 const antivaxEventTexts = [
   {
-    title: 'Vakcína neprošla dostatečným testováním, tvrdí odborník',
+    title: 'Vakcína neprošla dostatečným testováním, tvrdí lékař',
     text: 'Lidé mají strach, že nová vakcína proti koronaviru je nedostatečně testovaná a očkování proto odmítají',
   },
   {
-    title: 'České celebrity sepsali petici proti očkování',
+    title: 'České celebrity sepsaly petici proti očkování',
     text: 'Odpor vůči očkování se šíří',
   },
   {
@@ -149,7 +149,7 @@ const antivaxEventTexts = [
     text: 'Lékař v USA zemřel po očkování. Detaily případu jsou zatím neznámé, občani se obávají očkování.',
   },
   {
-    title: 'Horečky, průjmy, zimnce: Češi popisují první pociťované vedlejší vedlejší účinky vakcíny proti covidu',
+    title: 'Horečky, průjmy: Češi popisují první pociťované vedlejší vedlejší účinky vakcíny',
     text: 'Lidé mají strach z vedlejších účinků očkování a vakcínu proto odmítají',
   },
   {
@@ -168,15 +168,17 @@ export const eventTriggers: EventTrigger[] = [
   {
     events: [
       {
-        title: 'V České republice je první případ nákazy koronavirem',
-        text: '<p>První případ nákazy Covidem-19 byl dnes potvrzen i v Česku. \
-Na vás teď je, abyste na situaci zareagovali zavedením libovolných opatření nebo si se situací poradili jakkoliv jinak vám je libo. Barva jsou aktivní opatření, barva naopak značí, že opatření aktuálně není zavedeno. Každé opatření se projevuje na šíření koronaviru rozdílně. Pamatujte, že nějaká čas trvá, než se opatření na množství nakažených projeví. \
-Každý panel má také v rohu otazník, který vám představí všechny své ovládací prvky.</p> \
-<p>Hru můžete vždy pozastavit mezerníkem, nebo tlačítkem pauza.</p>',
-        help: 'Při každé události ve hře si také můžete přečíst vzkazy od vašeho průvodce. Tyto texty budou vždy mít tuto barvu a snažíme se vám skrze ně poradit. Ale nemusíte se jimi nijak řídit!',
+        title: 'První případ nákazy koronavirem!',
+        text: '<p>Nemocí Covid-19 se v Česku nakazil první člověk a řešení této situace máte teď ve svých rukou. Než se do toho pustíte, měli byste vědět tohle: </p> \
+<p>Aktivní opatření jsou označena modře, šedá naopak znamená, že opatření aktuálně není zavedeno \
+- Každé opatření má různý vliv na šíření koronaviru \
+- Pamatujte, že nějaký čas trvá, než se opatření na množství nakažených projeví \
+- Hru můžete vždy pozastavit mezerníkem nebo tlačítkem pauza \
+- Když nebudete vědět jak hru ovládat a co jednotlivé věci znamenají, najeďte myší na otazníky v rozích jednotlivých panelů \ </p>',
+        help: 'Zelená barva značí komentář průvodce. Průvodce toho hodně ví, a proto vám bude radit, co by v nastalé situaci bylo dobré udělat. To, jestli jeho rady poslechnete, už je jen na vás!',
         choices: [
+          simpleChoice('Chci vidět ovládání', {id: TUTORIAL_ID, duration: maxMitigationDuration}),
           simpleChoice('Chci přímo do hry'),
-          simpleChoice('Ukažte mi ovládání', {id: TUTORIAL_ID, duration: maxMitigationDuration}),
         ],
       },
     ],
@@ -185,15 +187,15 @@ Každý panel má také v rohu otazník, který vám představí všechny své o
   {
     events: [
       {
-        title: 'Grafy (hlavní panel)',
-        text: '<p>Váš hlavní zdroj informací o aktuální situaci ve státě. Můžete si volit mezi zobrazením čtyř grafů:</p> \
+        title: 'Grafy (levý horní panel)',
+        text: '<p>Hlavní zdroj informací o aktuální situaci ve státě. Překlikávat můžete mezi těmito čtyřmi grafy:</p> \
 <ul style="list-style-type: none">\
-<li><strong>Ikonka viru</strong>: Počet nově nakažených</li>\
-<li><strong>Ikonka lebky</strong>: Počet nově zemřelých</li>\
-<li><strong>Ikonka peněz</strong>: Celkové náklady</li>\
-<li><strong>Ikonka injekce</strong>: Počet imunních &ndash; součet vakcinovaných a imunních po prodělání nemoci</li>\
+<li><strong>Ikonka viru</strong>: (Nové nakažení) Tento graf zobrazuje, kolik lidí se v daný den nově nakazilo</li>\
+<li><strong>Ikonka lebky</strong>:(Zemřelí) Počet zemřelých denně. Tento graf zobrazuje lidi, kteří zemřeli přímo na Covid-19. Mějte ale na mysli i další okolnosti. Například přetížené nemocnice bez volných kapacit vedou k více úmrtím.</li>\
+<li><strong>Ikonka peněz</strong>: (Náklady) Graf nákladů značí ztráty, které státní kase i ekonomice jako celku pandemie přináší. Zavádění opatření, vyplácení kompenzací i hospitalizace - to vše stojí peníze.</li>\
+<li><strong>Ikonka injekce</strong>: (Imunizovaní) Tento graf zobrazuje jak obyvatele, kteří prodělali Covid-19 a stali se tak na několik měsíců imunní, tak i lidi, kteří imunitu získali očkováním. Vaším cílem ve hře je dosáhnout 75 % imunní populace.</li>\
 </ul>',
-        help: 'Pokud nehledáte něco konkrétního (například postup očkování), doporučíme vám zůstat na zobrazení nově nakažených. To je pro zvládání pandemie ten nejpodstatnější graf.',
+        help: 'Grafy v sobě nesou mnoho zajímavých informací. Jestli ale chcete s pandemii efektivně zatočit, doporučujeme se orientovat hlavně podle grafu nově nakažených, který odráží, jak se vám zvládání pandemie momentálně (ne)daří. ',
       },
     ],
     condition: (ei: EventInput) => isEventMitigationActive(ei, TUTORIAL_ID),
@@ -201,10 +203,15 @@ Každý panel má také v rohu otazník, který vám představí všechny své o
   {
     events: [
       {
-        title: 'Základní statistiky (pod grafy)',
-        text: 'Statistiky slouží jako rychlý přehled podstatných ukazatelů. V levé části panelu najdete čísla platná k aktuálnímu dni. Kromě opakování nakažených zde klíčovou roli hraje Kapacita nemocnic a Společenská stabilita. Pokud překročíte kapacitu nemocnic, bude nemoc výrazně nebezpečnější. Pokud budou vaše opatření příliš omezující nebo naopak zemře příliš lidí a společnost se úplně vystraší, může dojít k výměně vlády a vaše hra skončí. \
-V pravém sloupci vidíte součty. Kolik lidí celkem je imunních, kolik již bylo ztraceno peněz a kolik osob pandemii podlehlo.',
-        help: 'Propad stability na minimum je jediný způsob jak můžete před dostatečnou imunizací ukončit hru, dávejte si tedy na tento ukazatel obzvláštní pozor. Pokud bude příliš nízko, možná je čas uvolnit některá opatření.',
+        title: 'Základní statistiky (levý dolní panel)',
+        text: '<p>Statistiky slouží jako rychlý přehled toho nejdůležitějšího.</p> \
+<p>Nakažení: Aktuální počet nemocných + nově nakažení \
+Zemřelí: Aktuální počet zemřelých + nově zemřelí \
+Imunní: Aktuální počet imunních + nově imunní \
+Náklady: Aktuální velikost nákladů + nové náklady \
+Společenská stabilita: reakce společnosti na vaše kroky. Pokud zavádíte příliš omezující opatření, nebo naopak umírá příliš lidí, může dojít k výměně vlády a hra skončí \
+Kapacita nemocnic: pokud překročíte kapacitu nemocnic, zhroší se péče o nemocné a zemřelých tak bude přibývat více \ </p>',
+        help: 'Průvodce: Zvláštní pozornost věnujte ukazateli společenské stability. Její propad na minimum je jediný způsob, jak může vaše hra skončit ještě před dostatečnou imunizací.',
       },
     ],
     condition: (ei: EventInput) => isEventMitigationActive(ei, TUTORIAL_ID),
@@ -212,10 +219,9 @@ V pravém sloupci vidíte součty. Kolik lidí celkem je imunních, kolik již b
   {
     events: [
       {
-        title: 'Opatření (panel s ovládacími prvky)',
-        text: 'Zde naleznete váš hlavní nástroj k zvládání pandemie. Jednotlivá opatření a jejich naznačené dopady si můžete projít po kliknutí na otazníček v rohu panelu. Ve hře se také můžete rozhodnout některá opatření “kompenzovat” - znamená to, že budete vydávat zvláštní zdroje jako kompenzace poškozeným podnikům. \
-Ve hře je pro zjednodušení stát nesmírně efektivní v zavádění a vypínání opatření. Vše je zavedeno okamžitě a vždy bez technických chyb. Toto je zásadní zjednodušení oproti reálnému světu.',
-        help: 'Všechna opatření o něco snižují šíření viru, ale také stojí peníze a snižují stabilitu ve společnosti. Je samozřejmě na vás, jakou strategii zvládnutí viru zvolíte: snažili jsme se, aby náš model byl co nejférovější a umožnil různé přístupy. Můžete například zkusit nasazovat a zase vypínat opatření tak, abyste se vyhli vlnám a přetížení nemocnic.',
+        title: 'Opatření (pravý horní panel)',
+        text: 'Zde naleznete svůj hlavní nástroj k zvládání pandemie. Ve hře se také můžete rozhodnout některá opatření kompenzovat - znamená to, že budete vydávat zvláštní zdroje jako kompenzace poškozeným podnikům. Ve hře je pro zjednodušení stát nesmírně efektivní v zavádění a rušení opatření. Vše je zavedeno okamžitě a vždy bez technických chyb. Toto je zásadní zjednodušení oproti reálnému světu. ',
+        help: 'Opatření o něco snižují šíření viru, ale také stojí peníze a snižují stabilitu ve společnosti. Je na vás, jakou strategii zvolíte. Snažili jsme se, aby náš model byl co nejférovější a umožnil různé přístupy. Můžete například zkusit nasazovat a zase vypínat opatření tak, abyste se vyhnuli vlnám a přetížení nemocnic. ',
       },
     ],
     condition: (ei: EventInput) => isEventMitigationActive(ei, TUTORIAL_ID),
@@ -223,9 +229,9 @@ Ve hře je pro zjednodušení stát nesmírně efektivní v zavádění a vypín
   {
     events: [
       {
-        title: 'Efekty opatření',
-        text: 'Poslední, zatím prázdný panel, vám bude ukazovat vliv všech voleb, které jste udělali v rámci různých krizových událostí. Událostí jsou ve hře desítky, ale při každé hře jich zažijete jen malou část.',
-        help: 'A tím se ukončuje naše krátká cesta po ovládání hry. Jakmile zmáčknete OK, bude už jen na vás jak si s pandemií poradíte. Ale nebojte, ve všech mimořádných situacích se vám pokusíme nabídnout radu. \
+        title: 'Datum (pravý dolní panel)',
+        text: 'Zde naleznete pouze dnešní datum a pod ním případně vliv všech voleb, které jste udělali v rámci různých krizových událostí. Událostí jsou ve hře desítky, ale při každé hře jich zažijete jen malou část.',
+        help: 'A tím se ukončuje naše krátká cesta po ovládání hry. Jakmile zmáčknete OK, bude už jen na vás, jak si s pandemií poradíte. Ale nebojte, ve všech mimořádných situacích se vám pokusíme nabídnout radu. \
 Hodně štěstí!',
       },
     ],
@@ -240,8 +246,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Důvěra ve vládu opět stoupá',
-        help: 'Podařilo se obnovit důvěru obyvatelstva. To nám dává prostor pro aktivnější užívání opatření.',
+        title: 'Češi důvěřují vládě!',
+        help: 'Vypadá to, že jste si získali zpět důvěru obyvatel. Nemusíte se teď obávat příliš negativních reakcí při zavádění opatření.',
       },
     ],
     condition: (ei: EventInput) => ei.eventData.minStability <= 50 && ei.stats.stability >= 75,
@@ -249,8 +255,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Důvěra ve vládu klesá',
-        help: 'Důvěra lidí ve vládu klesá. Každé opatření má totiž náklady nejenom finanční, ale i ve stabilitě. Je tak nutné balancovat a zavírat jen když je to nutné. Opatření můžete vypínat a zapínat v panelu vpravo nahoře.',
+        title: 'Lidem dochází trpělivost! Nevěří vládním rozhodnutím',
+        help: 'Vaše volba opatření otřásla důvěrou obyvatel. Nezapomínejte, že opatření mají vliv na společenskou stabilitu. Když budou příliš přísná a budou trvat dlouho, lidé začnou být nespokojení.',
       },
     ],
     condition: (ei: EventInput) => ei.stats.stability <= 75,
@@ -258,8 +264,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Češi jsou z koronaviru frustrovaní',
-        text: 'Nálada je stále horší, tvrdí terapeut.',
+        title: 'Frustrace a zklamání společnosti',
+        help: 'Pozor, ve společnosti to začíná vřít! Doporučujeme se zaměřit na stav společenské stability.',
       },
     ],
     condition: (ei: EventInput) => ei.stats.stability <= 50,
@@ -267,8 +273,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Opozice vyzývá vládu k rezignaci a obyvatelstvo k opatrnosti!',
-        help: 'Pozor, situace je velmi špatná. Pokud to tak půjde dál, přijdete o šanci zkusit pandemii zvládnout. Může být nutné uvolnit některá opatření v panelu vpravo nahoře nebo začít na stejném místě platit kompenzace.',
+        title: 'Opozice vyzývá vládu k rezignaci!',
+        help: 'Pozor, situace je velmi špatná. Další pokles stability může hru předčasně ukončit. Co k situaci vedlo? Vysoký počet zemřelých vyžaduje zpřísnění opatření. Naopak příliš přísná opatření může být nutné uvolnit nebo začít platit kompenzace.',
         choices: okButton({...selfIsolationMitigation1, name: 'Výzvy k rezignaci', duration: 30}),
       },
     ],
@@ -283,8 +289,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Analytici varují před rychlostí zadlužování země',
-        help: 'Hra měří i to jak moc zadlužujete stát i kolik ztrácí jednotlivé podniky vlivem situace a různých opatření. Peníze si můžeme půjčovat, ale velmi vysoké výdaje mohou mít negativní vedlejší dopady.',
+        title: 'Česko se příliš zadlužuje!',
+        help: 'Hra měří, jak moc zadlužujete stát i kolik ztrácí jednotlivé podniky vlivem situace a opatření. Velmi vysoké výdaje mohou mít negativní vedlejší dopady.',
       },
     ],
     condition: (ei: EventInput) => ei.stats.costs.total > 300_000_000_000,
@@ -292,8 +298,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Výše státního dluhu je hrozivá, říkají analytici',
-        help: 'Krize má vysoké náklady. V tuto chvíli nás pandemie stojí téměř přesně půlku celého státního rozpočtu České republiky v roce 2019.',
+        title: 'Výše státního dluhu je hrozivá!',
+        help: 'Krize má vysoké náklady. V tuto chvíli nás pandemie stojí téměř půlku státního rozpočtu České republiky za rok 2019.',
       },
     ],
     condition: (ei: EventInput) => ei.stats.costs.total > 750_000_000_000,
@@ -301,8 +307,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Státní dluh je nejvyšší v historii a dramaticky roste každou vteřinu!',
-        help: 'Pouze výdaje spojené s pandemií koronaviru dosáhly součtu výdajů státního rozpočtu. Státní dluh a nezaměstnanost jsou rekordní, hodnota koruny rychle klesá.',
+        title: 'Státní dluh je nejvyšší v historii!',
+        help: 'Výdaje spojené s pandemií koronaviru dosáhly součtu výdajů státního rozpočtu. Státní dluh a nezaměstnanost jsou rekordní, hodnota koruny rychle klesá.',
         choices: okButton({stabilityCost: 6}, 'Historický státní dluh'),
       },
     ],
@@ -311,8 +317,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Hyper inflace a blížící se státní bankrot',
-        help: 'Utrácíme o řád víc než bychom si mohli dovolit a běžná ekonomika je v troskách, řetězce vztahů mezi firmami přestávají fungovat. Ve společnosti je široká nespokojenost.',
+        title: 'Hrozba státního bankrotu a hyperinflace!',
+        help: 'Běžná ekonomika je v troskách, řetězce vztahů mezi firmami přestávají fungovat. Ve společnosti panuje široká nespokojenost.',
         choices: okButton({stabilityCost: 30}),
       },
     ],
@@ -328,8 +334,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Za pouhý den COVID zabil {{stats.deaths.today}} lidí',
-        help: 'Vypadá to, že to není pouhá chřipka. Je ke zvážení zapnout opatření, která mohou pomoci šíření viru zpomalit. Stejně tak ti, kteří nemoc přežijí, budou nějakou dobu imunní.',
+        title: 'Covid zabil {{stats.deaths.today}} lidí za pouhý den',
+        help: 'Vypadá to, že to není pouhá chřipka. Je ke zvážení zapnout v panelu vpravo nahoře opatření, která mohou pomoci šíření viru zpomalit. Ti, kteří nemoc přežijí, budou nějakou dobu imunní.',
       },
     ],
     condition: (ei: EventInput) => ei.stats.deaths.today >= 10,
@@ -338,8 +344,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Česko má rekordní denní počet úmrtí lidí nakažených covidem',
-        help: 'Stovka mrtvých denně zasévá do společnosti otázky, jestli vláda zvládá situaci dobře.',
+        title: 'Rekordní denní počet úmrtí nakažených covidem',
+        help: 'Stovka mrtvých denně zasévá do společnosti otázky, jestli vláda zvládá situaci dobře. Podívejte se v panelu vpravo nahoře, zda máte zavedena dostatečná opatření.',
         choices: okButton({stabilityCost: 2}, 'Rekordní denní úmrtí'),
       },
     ],
@@ -349,8 +355,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: '{{stats.deaths.today}} mrtvých za den, kapacita krematorií lokálně překročena',
-        help: 'Takto rychlé přibývání obětí poprvé obyvatelstvo šokuje. Časem si možná zvyknou, ale zrychlení na více obětí denně už by přijali jen velmi těžko.',
+        title: '{{stats.deaths.today}} mrtvých za den, většině krematorií dochází kapacity',
+        help: 'Takto rychlé přibývání obětí obyvatelstvo šokuje. Více obětí denně už by přijali jen velmi těžko.',
         choices: okButton({stabilityCost: 6}, 'Kapacita krematorií překročena'),
       },
     ],
@@ -360,7 +366,7 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Temné predikce se naplnily: Česko přesáhlo hranici 1 500 mrtvých na koronavirus za den. Policie sváží mrtvé, armáda kope masové hroby.',
+        title: 'Temné predikce se naplnily: přes 1500 mrtvých za den. Armáda kope masové hroby',
         help: 'Více než 1 500 mrtvých denně je na stát s deseti miliony občanů velmi špatnou zprávou. Společnost je v šoku.',
         choices: okButton({stabilityCost: 30}),
       },
@@ -371,7 +377,7 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Koronavirus v Česku usmrtil už přes 10 000 lidí.',
+        title: 'Covid v Česku usmrtil přes 10 000 lidí',
         help: 'Překonání hranice deseti tisíc mrtvých přináší nedůvěru ve vládu. Lidé se ale také nějakou dobu raději sami více hlídají. Ekonomická aktivita i šíření infekce na dva týdny klesá.',
         choices: [
           {
@@ -390,8 +396,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Další tragický milník: Česko překonalo hranici 100 000 zemřelých na covid',
-        help: 'Sto tisíc mrtvých představuje světově tragické prvenství a bezprecedentní ztrátu životů. Tento milník lidi jak staví proti vládě, tak nutí k opatrnosti. Na dva týdny klesá ekonomická aktivita.',
+        title: 'Další tragický milník: Česko překonalo hranici 100 000 zemřelých na Covid-19',
+        help: 'Sto tisíc mrtvých představuje světově tragické prvenství a nevídanou ztrátu životů. Tento milník lidi staví proti vládě. Zároveň ale po dva týdny budou opatrnější.',
         choices: [
           {
             buttonLabel: 'OK',
@@ -409,8 +415,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'V centru Prahy dnes demonstrovali odpůrci koronavirových opatření. Neměli roušky, nedodržovali rozestupy',
-        help: 'Zatknutí odpůrců může pobouřit část obyvatel a snížit tak společenskou stabilitu. Pokud však protesty proběhnou bez zásahu, přibude velké množství nakažených.',
+        title: 'Demonstrace odpůrců vládních opatření: neměli roušky, nedodržovali rozestupy',
+        help: 'Demonstranti v centru Prahy nedodržují zavedená opatření. Jejich pozatýkání ale může pobouřit veřejnost. Pokud však protesty proběhnou bez zásahu, hrozí, že přibude velké množství nakažených.',
         choices: [
           simpleChoice('Nechat protesty proběhnout', {rMult: 1.2, exposedDrift: 50, duration: 14}),
           simpleChoice('Pozatýkat', {stabilityCost: 2}),
@@ -423,9 +429,9 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Za poslední týden si koronavirus vyžádal tisíce obětí a počet mrtvých stále rapidně vzrůstá.',
+        title: 'Tisíce obětí za poslední týden a mrtvých stále přibývá!',
         text: 'Kritická situace vede obyvatele k větší izolaci tam, kde je to možné.',
-        help: 'Izolace obyvatel zvyšuje náklady. Na druhou stranu výrazně snižuje hodnotu R.',
+        help: 'Izolace obyvatel znamená, že výrazně méně nakupují či pracují a jsou výrazně opatrnější. Nemoc se bude šířit mnohem pomaleji, ale ne vaší zásluhou.',
         // cost = 1.5*cost of lockdown (values taken from game.ts)
         // TODO get values from game.ts
         // rMult is applied everyDay!
@@ -464,9 +470,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Začátek prázdnin',
-        text: 'Školáci dostávají vysvědčení a začínají jim prázdniny.',
-        help: 'Opatření “uzavření škol” bylo aktivováno bez dalších nákladů.',
+        title: 'Školáci dnes dostávají vysvědčení a začínají jim prázdnin',
+        help: 'Žáci a studenti se o prázdninách ve školách nepotkávají. Opatření “uzavření škol” bylo aktivováno bez dalších nákladů.',
         choices: okButton({name: 'Prázdniny', id: SCHOOL_HOLIDAYS_ID, duration: 62}, 'Začátek prázdnin'),
       },
     ],
@@ -476,9 +481,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Konec prázdnin',
-        text: 'Prázdniny skončily a školáci se vrací do škol. Máme očekávat zhoršení situace?',
-        help: 'Opatření “uzavření škol” opět vyžaduje další náklady a snižuje společenskou stabilitu.',
+        title: 'Prázdniny skončily a školáci se vrací do škol. Máme očekávat zhoršení situace?',
+        help: 'Opatření “uzavření škol” opět vyžaduje další náklady a snižuje společenskou stabilitu. Můžete je nechat zavřené, ale opatření už nebude automaticky zdarma.',
         choices: okButtonEndMitigation(SCHOOL_HOLIDAYS_ID, 'Konec prázdnin'),
       },
     ],
@@ -488,7 +492,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Virus se v teplém podnebí hůř šíří. Vědci předpokládají zpomalení pandemie.',
+        title: 'Virus se v teplém počasí hůř šíří. Vědci předpokládají zpomalení pandemie',
+        help: 'V létě tráví lidé více času venku a šance se nakazit je přirozeně snížená. Možná je teď vhodný čas uvolnit některá opatření. ',
         choices: okButton({name: 'Teplé počasí', id: WARM_WEATHER_ID, duration: 120}, 'Teplé počasí'),
       },
     ],
@@ -498,8 +503,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Konec teplého počasí',
-        text: 'Jak teplota ovlivňuje šíření koronaviru? Chladné počasí počasí pomáhá šíření, tvrdí epidemiologové.',
+        title: 'Chladné počasí počasí pomáhá šíření koronaviru, tvrdí epidemiologové',
+        help: 'V chladném počasí se lidé více potkávají v malých prostorách a virus se šíří rychleji. Jeden nakažený zvládne nakazit více lidí. Možná je vhodný čas zavést opatření.',
         choices: okButtonEndMitigation(WARM_WEATHER_ID, 'Konec teplého počasí'),
       },
     ],
@@ -515,8 +520,8 @@ Hodně štěstí!',
     // TODO don't do first two evets if face masks are not on
     events: [
       {
-        title: 'Ministr porušil svá vlastní pravidla, nakupoval zcela bez roušky.',
-        help: 'Pokud ministr po porušení vlastních nařízení setrvá na místě, mohou se obyvatelé bouřit, což znamená pokles společenské stability. Vyhození ministra, který je ve své práci již zaběhlý, může výrazně posunout začátek očkování.',
+        title: 'Ministr porušil svá vlastní pravidla, nakupoval zcela bez roušky',
+        help: 'Pokud ministr po porušení vlastních nařízení setrvá na místě, mohou se obyvatelé bouřit, což znamená pokles společenské stability. Vyhození ministra, který je ve své práci již zaběhlý, může ale výrazně zkomplikovat řízení ministerstva a s tím třeba očkování.',
         choices: [
           // TODO: fire -> postpone vaxination start
           simpleChoice('Vyhodit ministra', {vaccinationPerDay: -0.0001, duration: maxMitigationDuration}),
@@ -529,7 +534,7 @@ Hodně štěstí!',
         help: 'Pokud významná osobnost nebude potrestána může to vést k menší disciplíně obyvatelstva při dodržování opatření, což může přinést, jak nové nakažené, tak negativně ovlivnit hodnotu R. Jeho potrestání však může pobouřit jeho příznivce a negativně tak ovlivnit společenskou stabilitu.',
         choices: [
           simpleChoice('Neřešit prohřešek', {name: 'Celebrita odmítá roušku', rMult: 1.1, duration: 30}),
-          simpleChoice('Potrestat politika jako ostatní', {stabilityCost: 3}),
+          simpleChoice('Potrestat celebritu jako ostatní', {stabilityCost: 3}),
         ],
       },
       {
@@ -542,8 +547,7 @@ Hodně štěstí!',
         ],
       },
       {
-        title: 'Jak zažije Česko první volby ve znamení koronaviru?',
-        text: 'Vláda zvažuje zavedení korespondenční volby.',
+        title: 'Zažije Česko první místní volby ve znamení koronaviru?',
         help: 'Radikální proměny volebního procesu obyvatelstvo popudí a zvýší nedůvěru. Pokud volby proběhnou jako vždy, riskujeme šíření nemoci.',
         choices: [
           simpleChoice('Korespondenční volby', {stabilityCost: 5}),
@@ -568,7 +572,7 @@ Hodně štěstí!',
     events: [
       {
         title: 'Vláda se zabývá možností otevření skiaeálů',
-        text: 'Vlekaři žádají výjimku, někteří epidemiologové žádají preventivně zavřít.',
+        text: 'Otevření skiareálů? Vlekaři volají po výjimce, epidemiologové radí: zavřít!',
         help: 'Zavření skiareálů rozčílí hodně lidí a připraví je o oblíbené zimní sporty. Jejich otevření ale může vést k vyššímu riziku šíření.',
         choices: [
           simpleChoice('Otevřít skiareály', {name: 'Skiareály', rMult: 1.2, duration: 60}),
@@ -583,8 +587,8 @@ Hodně štěstí!',
     events: [
       {
         title: 'Vánoce během koronaviru: Jaké svátky nás letos čekají?',
-        text: 'Vláda zvažuje zákaz půlnočních a rodinných setkání nad 6 osob.',
-        help: 'Lze očekávat, že udělení výjimek pro období svátků obyvatelé ocení a pozitivně se tak promítne do společenské stability, ale zato přinese větší počet nových nakažených. Přísná opatření se zase naopak setkají s nevolí obyvatel a poklesem společenské stability.',
+        text: 'Pro období svátků je možné zavést speciální opatření (aby se zamezilo většímu setkávání), nebo naopak udělit zvláštní výjimky.',
+        help: 'Výjimku z opatření velká část obyvatel ocení. Více scházení ale znamená rychlejší šíření nemoci. Zamezit šíření se dá zpřísněním opatření. To ale může obyvatele popudit.',
         choices: [
           {
             buttonLabel: 'Povolit půlnoční i rodinná setkání',
@@ -602,9 +606,9 @@ Hodně štěstí!',
   { // Silvestr
     events: [
       {
-        title: 'Jak česko oslaví příchod nového roku v době pandemie covid-19?',
-        text: 'Pro období svátků je možné zpřísnit opatření, nebo naopak udělit výjimky z opatření.',
-        help: 'Pokud budou opatření zpřísněna, lze očekávat vlnu nevole obyvatel a snížení společenské stability. Výjimky z opatření sice společenskou stabilitu lehce zvýší, ale povedou ke zvýšení počtu nemocných.',
+        title: 'Jak česko oslaví příchod nového roku v době pandemie?',
+        text: 'Pro období svátků je možné zpřísnit opatření (aby se zamezilo většímu setkávání), nebo naopak udělit výjimky z opatření.',
+        help: 'Výjimku z opatření velká část obyvatel ocení. Více scházení ale znamená rychlejší šíření nemoci. Zamezit šíření se dá zpřísněním opatření. To ale může obyvatele popudit.',
         choices: [
           {
             buttonLabel: 'Povolit večerní vycházení na Silvestra',
@@ -627,9 +631,8 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Testování vakcín v poslední fázi.',
-        text: 'Stát skrze společný nákup Evropské unie objednal miliony očkovacích dávek.',
-        help: 'Úspěšný vývoj vakcín a jejich výhodný nákup zvyšuje společenskou stabilitu.',
+        title: 'Testování vakcín v poslední fázi. Státy EU objednaly miliony očkovacích dávek',
+        help: 'Úspěšný vývoj vakcín a jejich nákup ukazuje možnost získání imunity bez prodělání nemoci. Lidé jsou nadšení, že vidí konec tunelu. Starostí tvého ministerstva pak není distribuce, ale pouze propagace vakcín. Distribuci a vše další zařídí kolegové nezávisle na vašich rozhodnutích. Teď už stačí vydržet..',
         choices: okButton({stabilityCost: -10}),
       },
     ],
@@ -640,7 +643,7 @@ Hodně štěstí!',
       {
         title: 'Zmírní kampaň obavy z očkování proti covidu-19?',
         text: 'Je třeba se rozhodnout, zda budou investovány peníze do propagace očkování proti koronaviru.',
-        help: 'Investice do kampaně pro očkování zvýší zájem o vakcinaci a tím pádem její rychlost. Je na ni však třeba vydat další náklady a zároveň se při možném neúspěchu kampaně  negativně ovlivní společenskou stabilitu. Odmítnutí proma vakcinaci zpomalí.',
+        help: 'Investice do kampaně pro očkování zvýší zájem o vakcinaci a tím pádem její rychlost. Je na ni však třeba vydat další náklady a zároveň riskujeme, že úředníci veřejnost spíše popudí.',
         choices: [
           {
             buttonLabel: 'Investovat do propagace vakcín',
@@ -705,9 +708,9 @@ Hodně štěstí!',
   {
     events: [
       {
-        title: 'Tři sousední země překročily hranici 75 % proočkování populace.',
+        title: 'Tři sousední země překročily hranici 75 % proočkování populace',
         text: 'Sousední země mají proočkováno a nabízejí pomoc s očkováním v ČR.',
-        help: 'Přijetí zahraniční pomoci urychlí vakcinaci a zvedne o několik procent proočkovanost ČR. Její odmítnutí se může negativně ovlivnit společenskou stabilitu.',
+        help: 'Přijetí zahraniční pomoci urychlí vakcinaci a zvedne o několik procent proočkovanost ČR. Její odmítnutí rozčílí část společnosti.',
         choices: [
           // total impact 5% vaccinated over 25 days
           simpleChoice('Přijmout zahraniční pomoc',
