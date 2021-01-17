@@ -20,7 +20,6 @@ type WinterEvent = typeof WINTER_EVENTS[number];
 const selfIsolationThreshold = 2000 / 7;
 const selfIsolationMitigation1 = {rMult: 0.8, economicCost: 200_000_000};
 
-
 /**
  * Generate first true randomly between given dates
  * TODO: unit test
