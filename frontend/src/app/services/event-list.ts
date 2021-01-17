@@ -12,8 +12,6 @@ const VACCINATION_CAMPAIGN_PAID_ID = 'vaccinationCampaignPaid';
 
 // Event trigger IDs
 const SELF_ISOLATION_TRIGGER = 'selfIsolation';
-const ANTIVAX_WITHOUT_CAMPAIGN_TRIGGER = 'antivaxWithoutCampaignTrigger';
-const ANTIVAX_WITH_CAMPAIGN_TRIGGER = 'antivaxWithCampaignTrigger';
 
 // Winter events
 const WINTER_EVENTS = ['skiareals', 'christmas', 'newYear'] as const;
@@ -78,7 +76,6 @@ export interface EventData {
   winterEvent: WinterEvent;
   aboveSelfIsolationThresholdDays: number;
   belowSelfIsolationThresholdDays: number;
-  showAntivaxEvent: boolean;
   minStability: number;
 }
 
@@ -87,7 +84,6 @@ export function initialEventData(): EventData {
     winterEvent: sample(WINTER_EVENTS) as WinterEvent, // sample returns WinterEvent | undefined
     aboveSelfIsolationThresholdDays: 0,
     belowSelfIsolationThresholdDays: 0,
-    showAntivaxEvent: false,
     minStability: 100,
   };
 }
@@ -107,13 +103,6 @@ export function updateEventData(eventInput: EventInput) {
     eventData.aboveSelfIsolationThresholdDays = 0;
     eventData.belowSelfIsolationThresholdDays++;
   }
-
-  // Antivax
-  eventData.showAntivaxEvent = eventInput.date > '2021-01-10'
-    // Both triggers need to be active in order not emit their events too soon one after another
-    && isEventTriggerActive(eventInput, ANTIVAX_WITH_CAMPAIGN_TRIGGER)
-    && isEventTriggerActive(eventInput, ANTIVAX_WITHOUT_CAMPAIGN_TRIGGER)
-    && probability(0.02);
 
   // Stability
   eventData.minStability = Math.min(eventInput.stats.stability, eventData.minStability);
@@ -549,6 +538,7 @@ Hodně štěstí!',
           simpleChoice('Vyhodit ministra', {vaccinationPerDay: -0.0001, duration: maxMitigationDuration}),
           simpleChoice('Neřešit prohřešek', {stabilityCost: 5}),
         ],
+        condition: (ei: EventInput) => ei.mitigations.rrr,
       },
       {
         title: 'Nejsem ovce a nebudu se podřizovat bludům. Roušku symbolicky odmítám',
@@ -558,6 +548,7 @@ Hodně štěstí!',
           simpleChoice('Neřešit prohřešek', {name: 'Celebrita odmítá roušku', rMult: 1.1, duration: 30}),
           simpleChoice('Potrestat celebritu jako ostatní', {stabilityCost: 3}),
         ],
+        condition: (ei: EventInput) => ei.mitigations.rrr,
       },
       {
         title: 'Investigativní novináři odhalili násobně předražené nákupy!',
@@ -751,15 +742,9 @@ Hodně štěstí!',
         text: et.text,
         help: 'Rychlost vakcinace se snižuje.',
         choices: okButton({vaccinationPerDay: -0.0002, duration: maxMitigationDuration}),
+        condition: (ei: EventInput) => !isEventMitigationActive(ei, VACCINATION_CAMPAIGN_ID),
       }),
-    ),
-    id: ANTIVAX_WITHOUT_CAMPAIGN_TRIGGER,
-    condition: (ei: EventInput) =>
-      (ei.eventData.showAntivaxEvent && !isEventMitigationActive(ei, VACCINATION_CAMPAIGN_ID)),
-    reactivateAfter: 7, // cannot occur more often than once every 7 days
-  },
-  {
-    events: antivaxEventTexts.map(et =>
+    ).concat(antivaxEventTexts.map(et =>
       ({
         title: et.title,
         text: et.text,
@@ -767,11 +752,10 @@ Hodně štěstí!',
         choices: [
           {buttonLabel: 'OK', removeMitigationIds: [VACCINATION_CAMPAIGN_ID]},
         ],
+        condition: (ei: EventInput) => isEventMitigationActive(ei, VACCINATION_CAMPAIGN_ID),
       }),
-    ),
-    id: ANTIVAX_WITH_CAMPAIGN_TRIGGER,
-    condition: (ei: EventInput) =>
-      (ei.eventData.showAntivaxEvent && isEventMitigationActive(ei, VACCINATION_CAMPAIGN_ID)),
+    )),
+    condition: (ei: EventInput) => ei.date > '2021-01-10' && probability(0.02),
     reactivateAfter: 7, // cannot occur more often than once every 7 days
   },
   {
