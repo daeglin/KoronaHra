@@ -11,6 +11,7 @@ const VACCINATION_CAMPAIGN_ID = 'vaccinationCampaign';
 const VACCINATION_CAMPAIGN_PAID_ID = 'vaccinationCampaignPaid';
 const SPRING_2021_DATA_LEAK_ID = 'spring2021DataLeak';
 const SPRING_2021_SECURITY_PROBLEM_ID = 'spring2021SecurityProblem';
+const AUTUMN_2020_MINISTER_FIRED_ID = 'autumn2020MinisterFired';
 
 // Event trigger IDs
 const SELF_ISOLATION_TRIGGER = 'selfIsolation';
@@ -556,8 +557,7 @@ Hodně štěstí!',
         title: 'Ministr porušil svá vlastní pravidla, nakupoval zcela bez roušky',
         help: 'Pokud ministr po porušení vlastních nařízení setrvá na místě, mohou se obyvatelé bouřit, což znamená pokles společenské stability. Vyhození ministra, který je ve své práci již zaběhlý, může ale výrazně zkomplikovat řízení ministerstva a s tím třeba očkování.',
         choices: [
-          // TODO: fire -> postpone vaxination start
-          simpleChoice('Vyhodit ministra', {vaccinationPerDay: -0.0001, duration: maxMitigationDuration}),
+          simpleChoice('Vyhodit ministra', {id: AUTUMN_2020_MINISTER_FIRED_ID, duration: maxMitigationDuration}),
           simpleChoice('Neřešit prohřešek', {stabilityCost: 5}),
         ],
         condition: (ei: EventInput) => ei.mitigations.rrr,
@@ -599,6 +599,18 @@ Hodně štěstí!',
       },
     ],
     condition: (ei: EventInput) => randomDateBetweenTrigger(ei.date, '2020-10-15', '2020-12-01'),
+  },
+  {
+    events: [
+      {
+        title: 'Zmatky na ministerstvu',
+        text: 'Nedávná výměna ministra způsobila zmatky v očkování.',
+        help: 'Očkování se zpomalilo',
+        choices: okButton({vaccinationPerDay: -1, duration: 10}, 'Zmatky v očkování'),
+      },
+    ],
+    condition: (ei: EventInput) => ei.date === '2021-01-05'
+      && isEventMitigationActive(ei, AUTUMN_2020_MINISTER_FIRED_ID),
   },
   /****************************************************************************
    *
