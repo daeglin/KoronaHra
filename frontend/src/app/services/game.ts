@@ -1,9 +1,9 @@
 import {cloneDeep, differenceWith, isEqual} from 'lodash';
 import {Event, EventHandler, EventMitigation} from './events';
 import {DayState, MitigationEffect, Simulation} from './simulation';
-import {clippedLogNormalSampler, nextDay} from './utils';
+import {clippedLogNormalSampler, dateDiff, nextDay} from './utils';
 import {MitigationActions, MitigationActionHistory, MitigationPair, Scenario} from './scenario';
-import {Mitigations} from '../game/mitigations-control/mitigations.service';
+import {Mitigations} from './mitigations.service';
 import {getRandomness} from './randomize';
 
 export interface MitigationParams extends MitigationEffect {
@@ -28,6 +28,9 @@ export interface GameData {
 export class Game {
   readonly infectionsWhenBordersOpen = 30;
   readonly infectionsWhenBordersClosed = 10;
+  readonly borderDriftDecayStartDate = '2021-01-01';
+  readonly borderDriftDecayDuration = 180;
+  readonly minimalStability = 0;
 
   static readonly defaultMitigations: Mitigations = {
     bordersClosed: false,
@@ -61,7 +64,7 @@ export class Game {
   mitigationParams = Game.randomizeMitigations();
   mitigationHistory: MitigationActionHistory = {};
   mitigationCache: MitigationActionHistory = {};
-  rampUpEvent: Event | undefined;
+  rampUpEvents: Event[] | undefined;
 
   constructor(public scenario: Scenario) {
     this.scenario = scenario;
@@ -71,7 +74,7 @@ export class Game {
   private rampUpGame() {
     while (this.simulation.lastDate < this.scenario.dates.rampUpEndDate) {
       this.updateRampUpMitigationsForScenario();
-      this.rampUpEvent = this.moveForward().event;
+      this.rampUpEvents = this.moveForward().events;
     }
   }
 
@@ -82,9 +85,9 @@ export class Game {
     this.moveForwardMitigations();
     const mitigationEffect = this.calcMitigationEffect(nextDate);
     const dayState = this.simulation.simOneDay(mitigationEffect, randomness);
-    const event = this.eventHandler.evaluateDay(lastDate, nextDate, dayState, this.eventMitigations);
+    const events = this.eventHandler.evaluateDay(lastDate, nextDate, dayState, this.mitigations, this.eventMitigations);
 
-    return {dayState, event};
+    return {dayState, events};
   }
 
 
@@ -166,7 +169,12 @@ export class Game {
   }
 
   isFinished() {
-    return this.simulation.lastDate >= this.scenario.dates.endDate;
+    return this.simulation.lastDate >= this.scenario.dates.endDate || this.isGameLost();
+  }
+
+  isGameLost() {
+    const lastStats = this.simulation.getLastStats();
+    return !!lastStats && lastStats.stability <= this.minimalStability;
   }
 
   updateRampUpMitigationsForScenario() {
@@ -222,7 +230,12 @@ export class Game {
       bordersClosed ||= mitigationParam.flags.isBorders;
     });
 
-    ret.exposedDrift += bordersClosed ? this.infectionsWhenBordersClosed : this.infectionsWhenBordersOpen;
+    let borderDriftMult = 1.0;
+    if (date > this.borderDriftDecayStartDate) {
+      borderDriftMult = Math.max(0, 1 - dateDiff(date, this.borderDriftDecayStartDate) / this.borderDriftDecayDuration);
+    }
+    ret.exposedDrift += borderDriftMult
+      * (bordersClosed ? this.infectionsWhenBordersClosed : this.infectionsWhenBordersOpen);
 
     this.eventMitigations.forEach(em => Game.applyMitigationEffect(ret, em));
 

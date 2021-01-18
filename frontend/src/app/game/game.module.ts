@@ -1,28 +1,33 @@
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
+import {RouterModule} from '@angular/router';
 import {ChartsModule} from 'ng2-charts';
 import {SharedModule} from '../shared/shared.module';
-import {EventsLayoutComponent} from './events-layout/events-layout.component';
+import {AboutComponent} from './pages/about/about.component';
+import {CreditsComponent} from './pages/credits/credits.component';
+import {EventsLayoutComponent} from './components/events-layout/events-layout.component';
 import {GameMaterialModule} from './game-material.module';
-import {GameComponent} from './game/game.component';
-import {GraphsComponent} from './graphs/graphs.component';
-import {LineGraphComponent} from './graphs/line-graph/line-graph.component';
-import {ScatterGraphComponent} from './graphs/scatter-graph/scatter-graph.component';
-import {IntroComponent} from './intro/intro.component';
-import {MitigationBoolComponent} from './mitigations-control/controls/mitigation-bool.component';
-import {MitigationScaleComponent} from './mitigations-control/controls/mitigation-scale.component';
-import {MitigationSlideComponent} from './mitigations-control/controls/mitigation-slide.component';
-import {MitigationToggleComponent} from './mitigations-control/controls/mitigation-toggle.component';
-import {MitigationConfigDirective} from './mitigations-control/mitigation-config.directive';
-import {MitigationsControlComponent} from './mitigations-control/mitigations-control.component';
-import {OutroComponent} from './outro/outro.component';
-import {SimulationControlComponent} from './simulation-control/simulation-control.component';
-import {StatusDisplayComponent} from './status-display/status-display.component';
+import {GameComponent} from './pages/game/game.component';
+import {GraphsComponent} from './components/graphs/graphs.component';
+import {LineGraphComponent} from './components/graphs/line-graph/line-graph.component';
+import {ScatterGraphComponent} from './components/graphs/scatter-graph/scatter-graph.component';
+import {IntroComponent} from './pages/intro/intro.component';
+import {MitigationBoolComponent} from './components/mitigations-control/controls/mitigation-bool.component';
+import {MitigationScaleComponent} from './components/mitigations-control/controls/mitigation-scale.component';
+import {MitigationSlideComponent} from './components/mitigations-control/controls/mitigation-slide.component';
+import {MitigationToggleComponent} from './components/mitigations-control/controls/mitigation-toggle.component';
+import {MitigationConfigDirective} from './components/mitigations-control/mitigation-config.directive';
+import {MitigationsControlComponent} from './components/mitigations-control/mitigations-control.component';
+import {OutroComponent} from './pages/outro/outro.component';
+import {SimulationControlComponent} from './components/simulation-control/simulation-control.component';
+import {StatusDisplayComponent} from './components/status-display/status-display.component';
 
 @NgModule({
   declarations: [
+    AboutComponent,
     EventsLayoutComponent,
+    CreditsComponent,
     GameComponent,
     GraphsComponent,
     IntroComponent,
@@ -43,6 +48,7 @@ import {StatusDisplayComponent} from './status-display/status-display.component'
     CommonModule,
     GameMaterialModule,
     ReactiveFormsModule,
+    RouterModule,
     SharedModule,
   ],
   exports: [

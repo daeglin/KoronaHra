@@ -1,3 +1,7 @@
-<cvd-col grow>
-  <cvd-game></cvd-game>
-</cvd-col>
+<cvd-header [compactMode]="layoutUtils.getIsGame() | async"></cvd-header>
+
+<div class="content">
+  <router-outlet></router-outlet>
+</div>
+
+<cvd-footer></cvd-footer>

@@ -1,28 +1,40 @@
 @import 'material-definitions.scss';
 
-html, body {
-  height: 100%;
-  min-height: 100%;
-  padding: 0;
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+html,
+body {
   margin: 0;
+  padding: 0;
   font-size: 6px;
+
+  height: 100%;
+  width: 100%;
 }
 
 body {
+  min-height: 100vh;
+  height: 100%;
+  width: 100%;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+  position: relative;
 }
 
-@media only screen and (min-width: 375px) {
-  html {
-    font-size: 8px;
-
-    cvd-app {
-      padding: 2rem 1rem;
-    }
-  }
+cvd-app {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-@media only screen and (min-width: 600px) {
+@media only screen and (min-width: 300px) {
   html {
     font-size: 10px;
 
@@ -67,4 +79,13 @@ a[href] {
   &:hover {
     text-decoration: underline;
   }
+}
+
+ul {
+  list-style: none;
+}
+
+// utility classes
+.u-nowrap {
+  white-space: nowrap
 }

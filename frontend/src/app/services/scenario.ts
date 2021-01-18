@@ -1,6 +1,7 @@
 // Scenarios with different gameplays (e.g. reproducing real country response)
-import {Mitigations} from '../game/mitigations-control/mitigations.service';
+import {Mitigations} from './mitigations.service';
 import {EventMitigation} from './events';
+import {maxMitigationDuration} from './event-list';
 import {Game} from './game';
 import {nextDay} from './utils';
 
@@ -97,7 +98,7 @@ export class Scenario {
 const czechiaGame = new Scenario({
   rampUpStartDate: '2020-02-25',
   rampUpEndDate: '2020-03-01',
-  endDate: '2021-10-01',
+  endDate: '2021-06-30',
 });
 
 // Czechia vaccination schedule
@@ -122,7 +123,7 @@ function addCzechiaVaccination(scenario: Scenario) {
     const vaccineMitigation = {
       name: 'Vakcíny',
       id: 'vaccination',
-      duration: Infinity,
+      duration: maxMitigationDuration,
       vaccinationPerDay: e[1] / 30 / population,
     };
     scenario.addGameplayEventMitigation(vaccineMitigation, e[0]);
@@ -134,7 +135,7 @@ addCzechiaVaccination(czechiaGame);
 const czechiaReal = new Scenario({
   rampUpStartDate: '2020-02-25',
   rampUpEndDate: '2021-01-09',
-  endDate: '2021-10-01',
+  endDate: '2021-06-30',
 });
 addCzechiaVaccination(czechiaReal);
 

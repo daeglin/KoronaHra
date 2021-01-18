@@ -3,6 +3,7 @@ import {ChangeDetectionStrategy, Component, Inject, Renderer2} from '@angular/co
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {map} from 'rxjs/operators';
 import {ConfigService} from './services/config.service';
+import {LayoutUtilsService} from './services/layout-utils.service';
 
 @UntilDestroy()
 @Component({
@@ -12,10 +13,12 @@ import {ConfigService} from './services/config.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
+
   constructor(
     configService: ConfigService,
     @Inject(DOCUMENT) document: Document,
     renderer: Renderer2,
+    public layoutUtils: LayoutUtilsService,
   ) {
     const {body} = document;
 

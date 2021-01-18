@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
+import {catchError} from 'rxjs/operators';
 import {Game, GameData} from '../services/game';
 import {Event} from '../services/events';
-import {ReplaySubject, Subject} from 'rxjs';
+import {of, ReplaySubject, Subject} from 'rxjs';
 import {scenarios} from '../services/scenario';
 import {DayState} from '../services/simulation';
 import {UntilDestroy} from '@ngneat/until-destroy';
-import {ActivatedEvent} from './graphs/line-graph/line-graph.component';
+import {ActivatedEvent} from './components/graphs/line-graph/line-graph.component';
 
 export type Speed = 'play' | 'pause' | 'fwd' | 'rev' | 'max' | 'finished';
 
@@ -20,7 +21,7 @@ export class GameService {
   readonly REVERSE_SPEED = 50; // ms
 
   game!: Game;
-  event: Event | undefined;
+  eventQueue: Event[] = [];
   tickerId: number | undefined;
   activatedEvent: ActivatedEvent | undefined;
 
@@ -52,10 +53,10 @@ export class GameService {
   restartSimulation(speed: Speed = 'play', scenario: keyof typeof scenarios = 'czechiaGame') {
     this.setSpeed('pause');
     this.game = new Game(scenarios[scenario]);
-    this.event = undefined;
+    this.eventQueue = [];
     this._reset$.next();
     this.setSpeed(speed);
-    this.showEvent(this.game.rampUpEvent);
+    this.showEvents(this.game.rampUpEvents);
     this.updateChart();
   }
 
@@ -107,26 +108,32 @@ export class GameService {
     }
 
     if (this.game.isFinished()) {
-      this.save();
       this.setSpeed('finished');
       return;
     }
 
     const gameUpdate = this.game.moveForward();
-    const event = gameUpdate.event;
-    this.showEvent(event);
+    this.showEvents(gameUpdate.events);
 
     this._endOfDay$.next();
     if (updateChart) this.updateChart();
     this.activatedEvent = undefined;
   }
 
-  private showEvent(event: Event | undefined) {
-    if (!event) return;
+  private showEvents(events: Event[] | undefined) {
+    if (!events || events.length === 0) return;
     if (this.speed === 'max') return;
 
-    this.event = event;
+    this.eventQueue = this.eventQueue.concat(events);
     this.setSpeed('pause');
+  }
+
+  removeEvent() {
+    this.eventQueue.shift();
+  }
+
+  get currentEvent() {
+    return this.eventQueue[0];
   }
 
   getGameData(): GameData {
@@ -139,8 +146,9 @@ export class GameService {
     };
   }
 
-  save() {
+  reqestToSave() {
     const gameData = this.getGameData();
-    this.httpClient.post('/api/game-data', gameData).subscribe();
+    return this.httpClient.post('/api/game-data', gameData)
+      .pipe(catchError(() => of(12345))); // TODO remove after game validation fixed
   }
 }
