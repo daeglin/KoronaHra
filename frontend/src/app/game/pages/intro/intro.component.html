@@ -1,12 +1,12 @@
 <cvd-col cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
-  <h2>Vítejte!</h2>
+  <h2>Vítejte</h2>
 
   <p>
-    Právě se nacházíte na stránkách simulace šíření nákazy Covid-19 v ČR.
+    Nacházíte se v simulaci šíření nákazy Covid-19 v ČR.
   </p>
 
   <p>
-    Simulace vznikla na základě modelu, o kterém se můžete dozvědět více na stránkách [TODO odkaz].
+    Simulace vznikla na základě modelu, o kterém se můžete dozvědět více <a routerLink="/about">zde</a>.
     Umožní vám dostat se do role vlády, která rozhoduje o tom, jaká proticovidová opatření budou zavedena.
     Vyzkoušíte si řešení situací spjatých s řešením epidemie koronaviru a přehledně uvidíte následky jednotlivých kroků.
     Simulace je postavená na přibližně deseti milionový stát v Evropě,
@@ -16,7 +16,7 @@
 
   <p>
     Po skončení simulace vám ukážeme jednoduchý přehled toho,
-    jak jste si v této “hře” vedli a zároveň budete moci sdílet odkaz s přáteli a porovnat s nimi své výsledky.
+    jak jste si v této hře vedli a zároveň budete moci sdílet odkaz s přáteli a porovnat s nimi své výsledky.
     Hra končí buď tím, že je dostatek obyvatel státu imunní nebo tím, že je společnost tak nespokojená,
     že již vládnout nemůžete. Všechno ostatní je ale na vás &ndash; to, co považujete za optimální strategii
     a dobrý výsledek je vaše rozhodnutí. Budete rozhodovat také nejen o opatřeních, ale bude třeba reagovat
@@ -39,5 +39,5 @@
     Přejeme, ať se vám v boji s koronavirem daří!
   </p>
 
-  <cvd-button cdkFocusInitial routerLink="game">Hrát</cvd-button>
+  <cvd-button cdkFocusInitial routerLink="/game">Hrát</cvd-button>
 </cvd-col>

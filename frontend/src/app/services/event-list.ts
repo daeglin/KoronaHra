@@ -9,9 +9,9 @@ const TUTORIAL_ID = 'tutorial';
 const SELF_ISOLATION_ID = 'selfIsolation';
 const VACCINATION_CAMPAIGN_ID = 'vaccinationCampaign';
 const VACCINATION_CAMPAIGN_PAID_ID = 'vaccinationCampaignPaid';
+const AUTUMN_2020_MINISTER_FIRED_ID = 'autumn2020MinisterFired';
 const SPRING_2021_DATA_LEAK_ID = 'spring2021DataLeak';
 const SPRING_2021_SECURITY_PROBLEM_ID = 'spring2021SecurityProblem';
-const AUTUMN_2020_MINISTER_FIRED_ID = 'autumn2020MinisterFired';
 
 // Event trigger IDs
 const SELF_ISOLATION_TRIGGER = 'selfIsolation';
@@ -437,7 +437,19 @@ Hodně štěstí!',
     ],
     condition: (ei: EventInput) => ei.stats.hospitalsUtilization > 0.75,
   },
-   // Self isolation
+  // Tracking capacity warning
+  {
+    events: [
+      {
+        title: 'Hygienické stanice přestávají stíhat',
+        text: 'Státní hygienické stanice zvládnou v naší hře trasovat přesně tisíc lidí denně. Pokud by váš denní přírůstek nakažených byl vyšší, začne trasování selhávat.',
+        help: 'Překonání hranice tisíce nakažených denně a s ním pád trasování může být podstatným mezníkem nezvládání pandemie. V našem modelovém státě není možné kapacitu trasování zvyšovat.',
+        choices: okButton(),
+      },
+    ],
+    condition: (ei: EventInput) => ei.stats.detectedInfections.today > 650,
+  },
+  // Self isolation
   {
     events: [
       {
@@ -538,7 +550,10 @@ Hodně štěstí!',
 <p>Náklady České republiky na zvládnutí prvních tří měsíců pandemie odhadujeme na 400 miliard Kč. Vy jste zaplatili {{stats.costs.total}} Kč</p>',
         help: 'První vlna může být překvapivá a nepříjemná. Možná nejste spokojeni s tím, jak se vám povedla a chcete to zkusit znovu, pak stačí zmáčknout <em>Restart</em>. Pokud chcete pokračovat dál, zmáčkněte <em>Jedeme dál</em>.',
         choices: [
-          simpleChoice('[TODO] Restart'),
+          {
+            buttonLabel: 'Restart',
+            action: 'restart',
+          },
           simpleChoice('Jedeme dál'),
         ],
       },
@@ -624,8 +639,7 @@ Hodně štěstí!',
         text: 'Otevření skiareálů? Vlekaři volají po výjimce, epidemiologové radí: zavřít!',
         help: 'Zavření skiareálů rozčílí hodně lidí a připraví je o oblíbené zimní sporty. Jejich otevření ale může vést k vyššímu riziku šíření.',
         choices: [
-          simpleChoice('Otevřít skiareály',
-            {name: 'Skiareály', rMult: 1.2, duration: 60}, ),
+          simpleChoice('Otevřít skiareály', {name: 'Skiareály', rMult: 1.2, duration: 60}),
           simpleChoice('Neotevřít', {stabilityCost: 5}, 'Otevřít skiareály'),
         ],
       },

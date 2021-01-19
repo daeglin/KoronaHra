@@ -17,14 +17,17 @@ export class EventsLayoutComponent {
 
   resumeEvent(event: Event, choice?: EventChoice) {
     if (choice !== undefined) {
-     this.gameService.game.applyMitigationActions({
+      if (choice.action === 'restart') {
+        this.gameService.restartSimulation();
+        return;
+      }
+
+      this.gameService.game.applyMitigationActions({
         eventMitigations: choice.mitigations,
         removeMitigationIds: choice.removeMitigationIds,
       });
 
-      if (event.choices?.length) {
-        this.gameService.activatedEvent = {originEvent: event, choice};
-      }
+      this.gameService.game.saveEventChoice({event, choice});
     }
 
     this.gameService.removeEvent();
