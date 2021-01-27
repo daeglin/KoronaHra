@@ -1,8 +1,9 @@
-import {cloneDeep, get, isNil, sample} from 'lodash';
-import {formatNumber} from '../utils/format';
+import {cloneDeep, get, isNil} from 'lodash';
+import {formatNumber, locale} from '../utils/format';
 import {EventData, eventTriggers, initialEventData, updateEventData} from './event-list';
 import {DayState, MitigationEffect, Stats} from './simulation';
-import {Mitigations} from './mitigations.service';
+import {Mitigations} from './mitigations';
+import {indexByFraction} from './utils';
 
 export interface EventMitigation extends Partial<MitigationEffect> {
   id?: string;
@@ -10,11 +11,14 @@ export interface EventMitigation extends Partial<MitigationEffect> {
   duration: number; // number of days the effect is valid for (0 - affects 0 days)
 }
 
+export type EventChoiceAction = 'restart' | 'pause';
+
 interface EventChoiceGeneric<T> {
   buttonLabel: string;
   chartLabel?: string;  // undefined - not present in the chart
   mitigations?: T[];
   removeMitigationIds?: string[]; // removes mitigation events with listed ids
+  action?: EventChoiceAction;
 }
 
 export type EventChoice = EventChoiceGeneric<EventMitigation>;
@@ -25,6 +29,11 @@ export interface Event {
   text?: string;
   help?: string;
   choices?: EventChoice[];
+}
+
+export interface EventAndChoice {
+  event: Event;
+  choice: EventChoice | undefined;
 }
 
 type EventText = ((eventInput: EventInput) => string) | string;
@@ -60,6 +69,7 @@ export interface EventInput extends EventState {
   mitigations: Mitigations;
   eventMitigations: EventMitigation[];
   stats: Stats;
+  randomSeed: number;
 }
 
 export class EventHandler {
@@ -71,7 +81,7 @@ export class EventHandler {
     if (!prevState) {
       prevState = {
         triggerStates: eventTriggers.map(et => ({trigger: et})),
-        eventData: initialEventData(),
+        eventData: initialEventData(dayState.randomness.eventRandomSeed),
       };
     }
 
@@ -85,6 +95,7 @@ export class EventHandler {
       stats: dayState.stats,
       mitigations,
       eventMitigations,
+      randomSeed: dayState.randomness.eventRandomSeed,
     };
 
     updateEventData(eventInput);
@@ -100,10 +111,9 @@ export class EventHandler {
 
     triggered.forEach(ts => ts.activeBefore = 0);
 
-    // Needs explicit cast because sample returns EventDef | undefined
     const eventDefs = triggered.map(ts => {
       const activeEvents = ts.trigger.events.filter(e => !e.condition || e.condition(eventInput));
-      return sample(activeEvents);
+      return indexByFraction(activeEvents, eventInput.randomSeed);
       // Needs explicit cast because the compiler doesn't know we filter out undefined elements
     }).filter(e => e) as EventDef[];
 
@@ -135,7 +145,7 @@ export class EventHandler {
       let valueToInsert: string;
 
       if (typeof value === 'number') valueToInsert = formatNumber(value, false, true);
-      else valueToInsert = value.toLocaleString();
+      else valueToInsert = value.toLocaleString(locale);
 
       return isNil(value) ? original : valueToInsert;
     });

@@ -1,18 +1,23 @@
 import Router from 'koa-router';
-import {GameDataModel} from './model';
+import {GameDataModel, InvalidGameDataModel} from './model';
 import {validateGame} from '../../../frontend/src/app/services/validate';
 import {GameData} from '../../../frontend/src/app/services/game';
+import {scenarios} from '../../../frontend/src/app/services/scenario';
 import {last} from 'lodash';
+import {Context, DefaultState} from 'koa';
+import {formatNumber} from '../../../frontend/src/app/utils/format';
 
-export const router = new Router();
+export const router = new Router<DefaultState, Context>();
 
 router.get('/api/game-data', async (ctx) => {
-  const data = await GameDataModel.find({}, {results: 1});
+  const data = await GameDataModel
+    .find({}, {results: 1, _id: 0})
+    .hint('results_1')
   ctx.body = data.map((i: any) => i.results);
 });
 
 router.get('/api/game-data/:id', async (ctx) => {
-  const data = await GameDataModel.findOne({_id: ctx.params.id}).exec();
+  const data = await GameDataModel.findOne({_id: ctx.params.id});
   if (!data) return ctx.status = 404;
   ctx.body = data;
 });
@@ -20,6 +25,8 @@ router.get('/api/game-data/:id', async (ctx) => {
 router.post('/api/game-data', async (ctx) => {
   const inputData: GameData = ctx.request.body;
   if (!validate(inputData)) {
+    const saveData = new InvalidGameDataModel({data: inputData});
+    await saveData.save();
     ctx.status = 400;
     ctx.body = genericError();
     return;
@@ -38,29 +45,55 @@ router.post('/api/game-data', async (ctx) => {
     return;
   }
 
-  ctx.body = {id: saveData._id};
+  ctx.body = {id: saveData._id, created: saveData.created};
 });
 
-// TODO implement and use on FE or remove
-// router.put('/api/game-data/:id', async (req, res) => {
-//   const todo = await GameDataModel.findOneAndUpdate({_id: req.params.id}, req.body, {new: true}).exec();
-//   if (!todo) return res.sendStatus(404);
-//   res.send(todo);
-// });
+// use data for `/results/:id` path, fallback otherwise
+router.get(['/og/results/:id', /\/og($|\/.*)/], async (ctx) => {
+  let data: any;
+
+  const res = {
+    origin: ensureHttps(ctx.origin),
+    url: ensureHttps(`${ctx.protocol}://${ctx.host}${ctx.url.replace(/^\/og/, '')}`),
+  }
+
+  try {
+    data = await GameDataModel.findOne({_id: ctx.params.id}, {results: 1});
+    if (!data) throw Error();
+  } catch (e) {
+    await ctx.render('results', res);
+    return;
+  }
+
+  await ctx.render('results', {
+    ...res,
+    dead: formatNumber(data.results.dead),
+    cost: formatNumber(data.results.cost, true, true),
+  });
+})
 
 function genericError() {
   return {error: 'Game data invalid'};
 }
 
-function validate(data: any): boolean {
+function validate(data: GameData): boolean {
   if (!data.mitigations) return false;
   if (!data.simulation || !data.simulation.length) return false;
 
   try {
-    if (!validateGame(data)) return false;
+    const scenario = scenarios[data.scenarioName];
+    const lastSimData = last(data.simulation)!;
+    if (scenario.dates.endDate !== lastSimData.date) return false;
+    const game = validateGame(data);
+    if (!game) return false;
+    if (game.isGameLost() || !game.isFinished()) return false;
   } catch (e) {
     return false;
   }
 
   return true;
+}
+
+function ensureHttps(url: string) {
+  return url.replace(/^http:\/\//, 'https://')
 }

@@ -1,32 +1,39 @@
-import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {catchError} from 'rxjs/operators';
-import {Game, GameData} from '../services/game';
+import {Injectable} from '@angular/core';
+import {meanBy} from 'lodash';
+import {ReplaySubject, Subject} from 'rxjs';
+import {tap} from 'rxjs/operators';
+import {LocalStorageKey} from '../../environments/defaults';
 import {Event} from '../services/events';
-import {of, ReplaySubject, Subject} from 'rxjs';
-import {scenarios} from '../services/scenario';
+import {Game, GameData} from '../services/game';
+import {ScenarioName} from '../services/scenario';
 import {DayState} from '../services/simulation';
-import {UntilDestroy} from '@ngneat/until-destroy';
-import {ActivatedEvent} from './components/graphs/line-graph/line-graph.component';
+import {validateGame} from '../services/validate';
 
-export type Speed = 'play' | 'pause' | 'fwd' | 'rev' | 'max' | 'finished';
+export type Speed = 'auto' | 'rev' | 'pause' | 'slow' | 'play' | 'fast' | 'max' | 'finished';
 
-@UntilDestroy()
+interface SavedGame {
+  id: string;
+  created: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class GameService {
-  readonly PLAY_SPEED = 400; // ms
-  readonly FORWARD_SPEED = 0; // ms
+  readonly SLOW_SPEED = 2_000; // ms
+  readonly PLAY_SPEED = 1_000; // ms
+  readonly FAST_SPEED = 333; // ms
   readonly REVERSE_SPEED = 50; // ms
 
   game!: Game;
   eventQueue: Event[] = [];
   tickerId: number | undefined;
-  activatedEvent: ActivatedEvent | undefined;
 
   private speed: Speed | undefined;
-  private _speed$ = new Subject<Speed>();
+  private speedBeforePause: Speed = 'play';
+  private speedInterval = 0;
+  private _speed$ = new ReplaySubject<Speed>(1);
   speed$ = this._speed$.asObservable();
 
   private _gameState$ = new ReplaySubject<DayState[]>(1);
@@ -39,7 +46,6 @@ export class GameService {
   endOfDay$ = this._endOfDay$.asObservable();
 
   constructor(private httpClient: HttpClient) {
-    this.restartSimulation();
   }
 
   get lastDate() {
@@ -50,9 +56,11 @@ export class GameService {
     return this.game.simulation.modelStates;
   }
 
-  restartSimulation(speed: Speed = 'play', scenario: keyof typeof scenarios = 'czechiaGame') {
+  restartSimulation(speed: Speed = 'play', scenarioName: ScenarioName = 'czechiaGame') {
     this.setSpeed('pause');
-    this.game = new Game(scenarios[scenario]);
+    this.removeCheckpoint();
+    this.game = new Game(scenarioName);
+    this.game.rampUpGame();
     this.eventQueue = [];
     this._reset$.next();
     this.setSpeed(speed);
@@ -60,25 +68,25 @@ export class GameService {
     this.updateChart();
   }
 
-  /**
-   * Update charts according to part of model data
-   * @param which what part of the data to take
-   *    'last' takes last item
-   *    'all' takes all items
-   *    number takes right slice of the array beginning with defined index
-   */
   private updateChart() {
     this._gameState$.next(this.game.simulation.modelStates);
   }
 
   togglePause() {
-    if (this.speed === 'pause') this.setSpeed('play');
+    if (this.speed === 'pause') this.setSpeed(this.speedBeforePause);
     else this.setSpeed('pause');
   }
 
   setSpeed(speed: Speed) {
     if (this.speed === speed) return;
-    if (this.tickerId) clearInterval(this.tickerId);
+    if (this.tickerId) {
+      window.clearTimeout(this.tickerId);
+      this.tickerId = undefined;
+    }
+
+    if (['slow', 'play', 'fast', 'auto'].includes(speed)) {
+      this.speedBeforePause = speed;
+    }
 
     this.speed = speed;
     this._speed$.next(speed);
@@ -87,12 +95,16 @@ export class GameService {
       while (!this.game.isFinished()) this.tick(false);
       this.updateChart();
       this.setSpeed('pause');
+    } else if (speed === 'slow') {
+      this.scheduleTick(this.SLOW_SPEED);
     } else if (speed === 'play') {
-      this.tickerId = window.setInterval(() => this.tick(), this.PLAY_SPEED);
-    } else if (speed === 'fwd') {
-      this.tickerId = window.setInterval(() => this.tick(), this.FORWARD_SPEED);
+      this.scheduleTick(this.PLAY_SPEED);
+    } else if (speed === 'auto') {
+      this.scheduleTick();
+    } else if (speed === 'fast') {
+      this.scheduleTick(this.FAST_SPEED);
     } else if (speed === 'rev') {
-      this.tickerId = window.setInterval(() => this.tick(), this.REVERSE_SPEED);
+      this.scheduleTick(this.REVERSE_SPEED);
     }
   }
 
@@ -113,15 +125,15 @@ export class GameService {
     }
 
     const gameUpdate = this.game.moveForward();
+    if (gameUpdate.dayState.date.endsWith('01')) this.saveCheckpoint();
     this.showEvents(gameUpdate.events);
 
     this._endOfDay$.next();
     if (updateChart) this.updateChart();
-    this.activatedEvent = undefined;
   }
 
   private showEvents(events: Event[] | undefined) {
-    if (!events || events.length === 0) return;
+    if (!events?.length) return;
     if (this.speed === 'max') return;
 
     this.eventQueue = this.eventQueue.concat(events);
@@ -141,14 +153,113 @@ export class GameService {
       mitigations: {
         history: this.game.mitigationHistory,
         params: this.game.mitigationParams,
+        controlChanges: this.game.mitigationControlChanges,
       },
+      scenarioName: this.game.scenarioName,
+      randomSeed: this.game.randomSeed,
       simulation: this.modelStates,
+      eventChoices: this.game.eventChoices,
     };
   }
 
-  reqestToSave() {
+  save$() {
+    this.saveCheckpoint();
     const gameData = this.getGameData();
-    return this.httpClient.post('/api/game-data', gameData)
-      .pipe(catchError(() => of(12345))); // TODO remove after game validation fixed
+    return this.httpClient.post<SavedGame>('/api/game-data', gameData).pipe(
+      tap(data => {
+        this.saveGameId(data.id, data.created);
+        this.removeCheckpoint();
+      }),
+    );
+  }
+
+  private saveGameId(id: string, created: string) {
+    const storageValue = window.localStorage.getItem(LocalStorageKey.SAVED_GAMES);
+    let games: SavedGame[] = [];
+
+    if (storageValue) games = JSON.parse(storageValue);
+
+    games.push({id, created});
+    window.localStorage.setItem(LocalStorageKey.SAVED_GAMES, JSON.stringify(games));
+  }
+
+  private saveCheckpoint() {
+    window.localStorage.setItem(LocalStorageKey.LAST_GAME_DATA, JSON.stringify(this.getGameData()));
+  }
+
+  private removeCheckpoint() {
+    window.localStorage.removeItem(LocalStorageKey.LAST_GAME_DATA);
+  }
+
+  isMyGameId(id: string) {
+    const games = window.localStorage.getItem(LocalStorageKey.SAVED_GAMES);
+    if (!games) return false;
+    if ((JSON.parse(games) as any[]).find(g => g.id === id)) return true;
+    return false;
+  }
+
+  loadGameFromJson() {
+    const dataString = window.localStorage.getItem(LocalStorageKey.LAST_GAME_DATA);
+    if (!dataString) return false;
+
+    try {
+      const game = validateGame(JSON.parse(dataString));
+      if (!game) return false;
+      this.restoreGame(game);
+    } catch {
+      return false;
+    }
+
+    return true;
+  }
+
+  isLocalStorageGame() {
+    return Boolean(window.localStorage.getItem(LocalStorageKey.LAST_GAME_DATA));
+  }
+
+  restoreGame(game: Game) {
+    this.setSpeed('pause');
+    this.game = game;
+    this._reset$.next();
+    this.updateChart();
+  }
+
+  private scheduleTick(interval?: number) {
+    if (interval !== undefined) this.speedInterval = interval;
+    else {
+      const speedInterval = [250, 1500];
+      const ratioInterval = [1, 2];
+
+      let infectionChange = 1;
+      const stats = this.game.simulation.getLastStats();
+      if (stats) {
+        const infectionMean = meanBy(this.game.simulation.modelStates.slice(-14), 'stats.detectedInfections.today');
+        infectionChange = Math.max(
+          stats.detectedInfections.today / infectionMean,
+          infectionMean / stats.detectedInfections.today);
+        infectionChange = Math.sqrt(infectionChange);
+        infectionChange = Math.round(infectionChange / .25) * .25;
+      }
+
+      const speed = speedInterval[0] + (speedInterval[1] - speedInterval[0]) *
+        (infectionChange - ratioInterval[0]) / (ratioInterval[1] - ratioInterval[0]);
+
+      if (speed > this.speedInterval) this.speedInterval += 100;
+      if (speed < this.speedInterval) this.speedInterval -= 100;
+
+      this.speedInterval = Math.max(speedInterval[0], this.speedInterval);
+      this.speedInterval = Math.min(speedInterval[1], this.speedInterval);
+    }
+
+    this.tickerId = window.setTimeout(() => {
+      this.tick();
+      if (this.tickerId) this.scheduleTick(this.speedInterval);
+    }, this.speedInterval);
+  }
+
+  pause() {
+    if (this.speed === 'pause') return;
+    if (this.speed === 'finished') return;
+    this.setSpeed('pause');
   }
 }

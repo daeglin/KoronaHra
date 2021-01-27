@@ -1,0 +1,20 @@
+<mat-button-toggle-group
+  #group grow
+  [value]="value"
+  (change)="onUserAction($event.value)"
+  matRipple
+  [matRippleDisabled]="true"
+  matRippleColor="#92e3d930"
+  [matRippleUnbounded]="true"
+  [matRippleCentered]="true"
+>
+  <mat-button-toggle
+    *ngFor="let level of levels"
+    [matTooltip]="speedDictionary[level.speed]"
+    grow style="overflow: visible"
+    [disabled]="disabled"
+    [value]="level.speed"
+  >
+    <cvd-icon [svgIcon]="level.icon"></cvd-icon>
+  </mat-button-toggle>
+</mat-button-toggle-group>

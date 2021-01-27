@@ -1,42 +1,47 @@
-<cvd-col [spacing]="4" alignItems="stretch" style="padding: 2rem">
+<mat-spinner *ngIf="!(isGameReady$ | async)" style="margin:auto"></mat-spinner>
+<cvd-col *ngIf="isGameReady$ | async" [verticalSpacing]="4" alignItems="stretch" style="padding: 2rem">
 
   <div *ngIf="isGameLost()">
     <h1>Vláda padla kvůli fatálnímu neúspěchu při řešení koronavirové krize</h1>
   </div>
 
   <div *ngIf="!isGameLost()">
-    <h1>Vaše hra v roli vlády skončila.</h1>
+    <h1>Vaše hra v roli vlády skončila</h1>
     <div>
-      Vaše hra v roli vlády skončila. Začíná léto 2021 a naše simulace zde končí. Nedokážeme vidět tak daleko do budoucnosti, abychom jí mohli smysluplně a zajímavě simulovat.
+      Začíná léto 2021 a naše simulace zde končí. Nedokážeme vidět tak daleko do budoucnosti, abychom ji mohli smysluplně a zajímavě simulovat.
     </div>
   </div>
 
-  <cvd-scatter-graph
-    style="width: 90%"
-    [options]="outroChartOptions" [datasets]="(datasets$ | async)!"
+  <cvd-scatter-graph *ngIf="(datasets$ | async) as datasets"
+    [options]="outroChartOptions" [datasets]="datasets"
   ></cvd-scatter-graph>
+
+  <cvd-graphs></cvd-graphs>
 
   <div class="content">
     <ng-content></ng-content>
   </div>
 
-  <cvd-col [spacing]="2" alignItems="flex-start">
+  <cvd-col *ngIf="stats" [spacing]="2" alignItems="flex-start">
     <p>
       V grafu vidíte celkový počet mrtvých a utracené peníze.
       Ale to nejsou všechny náklady pandemie.
-      <strong>V průběhu vaší hry přišli žáci a studenti o minimálně {{stats.schoolDaysLost.total | formatNumber}} dnů výuky</strong>.
+      <strong>
+        V průběhu vaší hry přišli žáci a studenti o minimálně
+        {{stats.schoolDaysLost.total | formatNumber}} dnů výuky
+      </strong>.
       Tento výpadek zároveň dopadne
       nejvíce na skupiny, které to mají se vzděláváním už teď těžké.
     </p>
 
-    <p>
+    <div>
       Pro lepší představu, co znamenají vaše finanční náklady?
-        <cvd-col class="color-money" alignItems="flex-start">
-          <li>Vaše náklady pandemie: {{stats.costs.total / 1e9 | formatNumber}} miliard Kč</li>
-          <li>Státní rozpočet 2019: {{1551 | formatNumber}} miliard Kč</li>
-          <li>Státní rozpočet 2020: {{1842 | formatNumber}} miliard Kč</li>
-        </cvd-col>
-    </p>
+    </div>
+    <ul>
+      <li>Vaše náklady pandemie: <strong>{{stats.costs.total | formatNumber:true:true}}</strong>
+      <li>Státní rozpočet 2019: <strong>{{1551e9 | formatNumber:true:true}}</strong>
+      <li>Státní rozpočet 2020: <strong>{{1842e9 | formatNumber:true:true}}</strong>
+    </ul>
 
     <p>
       Předtím, než si prohlédnete výsledky, rádi bychom vás upozornili, že simulace zachycuje jen zlomek
@@ -49,7 +54,9 @@
       Dovolíme si ale přesto na pár prvků upozornit.
       Mohli bychom legitimně říct, že za vaši hru se nakazilo ne
       <strong>{{stats.detectedInfections.total | formatNumber}}</strong>,
-      ale podle <a routerLink="/about"><!--TODO add anchor-->hypotéz výzkumníků</a> reálně až
+      ale podle
+      <a href="https://denikn.cz/471276/jaky-je-skutecny-rozsah-nakazy-sledujme-pocet-umrti-epidemie-se-zvrtla-uz-v-srpnu-upozornuji-vedci/"
+        target="_blank">hypotéz výzkumníků</a> reálně až
       <strong>{{4 * stats.detectedInfections.total | formatNumber}}</strong> lidí.
       Do hry a vašeho výsledku se ale započítávají jen přihlášení nakažení (na základě dat z testů).
     </p>
@@ -60,11 +67,41 @@
     </p>
 
     <p>
-      Chcete vědět více <a routerLink="/credits">o tom, kdo za simulací stojí?</a>
+      Chcete vědět více <a routerLink="/credits">o tom, kdo za simulací stojí</a>?
     </p>
   </cvd-col>
 
+  <cvd-col *ngIf="isMyGame">
+    <cvd-row>
+      <h4>Sdílejte svůj výsledek s přáteli</h4>
+    </cvd-row>
+
+    <cvd-row [spacing]="2" wrap>
+      <cvd-button (click)="shareService.shareTwitter(completeUrl)">
+        <cvd-icon svgIcon="twitter"></cvd-icon>
+        Twitter
+      </cvd-button>
+
+      <cvd-button (click)="shareService.shareFacebook(completeUrl)">
+        <cvd-icon svgIcon="facebook"></cvd-icon>
+        Facebook
+      </cvd-button>
+
+      <cvd-button (click)="shareService.shareLinkedIn(completeUrl)">
+        <cvd-icon svgIcon="linkedin"></cvd-icon>
+        LinkedIn
+      </cvd-button>
+    </cvd-row>
+  </cvd-col>
+
   <cvd-col>
-    <cvd-button cvdNavigateBack>Zpět</cvd-button>
+    <cvd-button
+      routerLink="/game"
+      themePalette="primary"
+      type="raised"
+      (click)="gameService.restartSimulation()">
+      <ng-container *ngIf="isMyGame">Hrát znovu a lépe</ng-container>
+      <ng-container *ngIf="!isMyGame">Hrát lépe</ng-container>
+    </cvd-button>
   </cvd-col>
 </cvd-col>

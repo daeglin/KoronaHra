@@ -4,13 +4,11 @@
   @include panel;
   display: flex; // TODO move to mixin panel and check all other panels
 
-  @include apply-themes {
-    .color-virus {
-      color: mat-color(map-get($theme, warn));
-    }
+  @media screen and (max-width: 768px) {
+    padding: 0.5rem;
 
-    .color-money {
-      color: mat-color(map-get($theme, accent));
+    cvd-graphs {
+      padding: 3rem 0.5rem;
     }
   }
 }

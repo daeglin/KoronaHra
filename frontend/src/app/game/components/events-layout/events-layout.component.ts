@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
-import {GameService} from '../../game.service';
 import {UntilDestroy} from '@ngneat/until-destroy';
-import {Event, EventChoice} from '../../../services/events';
 import {inOutAnimation} from 'src/app/utils/animations';
+import {Event, EventChoice} from '../../../services/events';
+import {GameService} from '../../game.service';
 
 @UntilDestroy()
 @Component({
@@ -17,19 +17,23 @@ export class EventsLayoutComponent {
 
   resumeEvent(event: Event, choice?: EventChoice) {
     if (choice !== undefined) {
-     this.gameService.game.applyMitigationActions({
+      if (choice.action === 'restart') {
+        this.gameService.restartSimulation();
+        return;
+      }
+
+      this.gameService.game.applyMitigationActions({
         eventMitigations: choice.mitigations,
         removeMitigationIds: choice.removeMitigationIds,
       });
 
-      if (event.choices?.length) {
-        this.gameService.activatedEvent = {originEvent: event, choice};
-      }
+      this.gameService.game.saveEventChoice({event, choice});
     }
 
     this.gameService.removeEvent();
     if (!this.gameService.currentEvent) {
-      this.gameService.setSpeed('play');
+      this.gameService.togglePause();
+      if (choice?.action === 'pause') this.gameService.setSpeed('pause');
     }
   }
 }

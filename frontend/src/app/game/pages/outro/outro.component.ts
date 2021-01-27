@@ -1,9 +1,12 @@
-import {Component} from '@angular/core';
-import {UntilDestroy} from '@ngneat/until-destroy';
+import {isPlatformBrowser} from '@angular/common';
+import {Component, Inject, PLATFORM_ID} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {ChartDataSets, ChartOptions, ChartPoint, ScaleTitleOptions} from 'chart.js';
-import {combineLatest, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {combineLatest, Observable, of} from 'rxjs';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {MetaService} from 'src/app/services/meta.service';
+import {SocialNetworkShareService} from 'src/app/services/social-network-share.service';
 import {formatNumber} from '../../../utils/format';
 import {GameService} from '../../game.service';
 import {GameResult, OutroService} from './outro.service';
@@ -24,6 +27,11 @@ const convert: (result: GameResult) => ChartPoint =
   styleUrls: ['./outro.component.scss'],
 })
 export class OutroComponent {
+  resultId$: Observable<string>;
+  isGameReady$ = this.outroService.current$.pipe(
+    map(current => current.gameIsReady),
+  );
+  isMyGame = false;
 
   private readonly scalesLabelsDefaults: ScaleTitleOptions = {
     display: true,
@@ -31,7 +39,8 @@ export class OutroComponent {
   };
 
   datasets$: Observable<ChartDataSets[]> = combineLatest([
-    this.outroService.myResult$.pipe(
+    this.outroService.current$.pipe(
+      map(current => current.result),
       map(result => result ? [convert(result)] : null),
     ),
     this.outroService.allResults$.pipe(
@@ -75,11 +84,16 @@ export class OutroComponent {
     tooltips: {
       displayColors: false,
       callbacks: {
-        title: context => context[0].datasetIndex ? 'Výsledek jiného hráče' : 'Můj výsledek',
-        label: node => [
-          `Celkový počet mrtvých: ${formatNumber(+node.xLabel!)}`,
-          `Celkové náklady: ${formatNumber(+node.yLabel!, true, true)}`,
+        title: (results, data) => {
+          if (data!.datasets!.length > 1 && !results[0].datasetIndex) return 'Můj výsledek';
+          if (results.length === 1) return 'Výsledek jiného hráče';
+          return `Výsledek ${results.length} jiných hráčů`;
+        },
+        beforeBody: node => [
+          `Celkový počet mrtvých: ${formatNumber(+node[0].xLabel!)}`,
+          `Celkové náklady: ${formatNumber(+node[0].yLabel!, true, true)}`,
         ],
+        label: () => '',
       },
     },
     scales: {
@@ -115,22 +129,46 @@ export class OutroComponent {
     },
   };
 
+  completeUrl = '';
+
   constructor(
     private outroService: OutroService,
-    private gameService: GameService,
+    public gameService: GameService,
     meta: MetaService,
+    public shareService: SocialNetworkShareService,
+    activatedRoute: ActivatedRoute,
+    router: Router,
+    @Inject(PLATFORM_ID) platformId: string,
   ) {
+    this.resultId$ = activatedRoute.params.pipe(
+      map(data => data.id),
+      tap(id => this.isMyGame = this.gameService.isMyGameId(id)),
+    );
     meta.setTitle('Výsledky');
     outroService.fetchAllResults();
+
+    if (isPlatformBrowser(platformId)) {
+      this.completeUrl = window.location.href;
+    }
+
+    this.resultId$.pipe(
+      switchMap(id => id
+        ? outroService.loadGame$(id)
+        : this.gameService.speed$.pipe(map(speed => speed === 'finished'))),
+      catchError(() => of(false)),
+      untilDestroyed(this),
+    ).subscribe(
+      gameIsValidAndFinished => {
+        if (!gameIsValidAndFinished) router.navigate(['/']);
+      },
+    );
   }
 
   get stats() {
-    const lastStats = this.gameService.game.simulation.getLastStats();
-    if (!lastStats) throw new Error('Missing game statistics');
-    return lastStats;
+    return this.gameService.game?.simulation?.getLastStats();
   }
 
   isGameLost() {
-    return this.gameService.game.isGameLost();
+    return this.gameService.game?.isGameLost();
   }
 }

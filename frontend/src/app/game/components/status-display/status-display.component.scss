@@ -13,13 +13,25 @@
       color: mat-color(map-get($theme, accent));
     }
   }
+
+  @media screen and (max-width: 450px) {
+    .status-display-label {
+      display: none;
+    }
+  }
+
+  cvd-help-tooltip {
+    li:nth-child(1) {
+      margin-bottom: 1rem;
+    }
+  }
 }
 
 .item {
   margin: 0.75rem 0;
 
   cvd-icon {
-    padding-right: 1rem;
+    padding-right: 0.3rem;
   }
 }
 

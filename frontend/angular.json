@@ -30,7 +30,8 @@
               "chart.js",
               "chartjs-plugin-datalabels",
               "chartjs-plugin-zoom",
-              "lodash"
+              "lodash",
+              "seedrandom"
             ],
             "assets": [
               "src/favicon.ico",
@@ -84,8 +85,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "2mb"
+                  "maximumWarning": "1000kb",
+                  "maximumError": "3mb"
                 },
                 {
                   "type": "anyComponentStyle",
